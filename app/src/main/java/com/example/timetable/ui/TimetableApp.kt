@@ -3,6 +3,7 @@ package com.example.timetable.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -19,41 +20,56 @@ fun TimetableApp() {
     val sharedPref = remember { PreferenceManager.getDefaultSharedPreferences(context) }
     val onboardingCompleted = sharedPref.getBoolean(AppConstants.KEY_ONBOARDING_COMPLETED, false)
     
+    val navigateBack: () -> Unit = {
+        if (navController.previousBackStackEntry != null &&
+            navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+            navController.popBackStack()
+        }
+    }
+
+    val navigateTo: (String) -> Unit = { route ->
+        if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+            navController.navigate(route)
+        }
+    }
+    
     NavHost(
         navController = navController, 
         startDestination = if (onboardingCompleted) "main" else "onboarding"
     ) {
         composable("onboarding") {
             OnboardingScreen(onFinished = {
-                sharedPref.edit().putBoolean(AppConstants.KEY_ONBOARDING_COMPLETED, true).apply()
-                navController.navigate("main") {
-                    popUpTo("onboarding") { inclusive = true }
+                if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+                    sharedPref.edit().putBoolean(AppConstants.KEY_ONBOARDING_COMPLETED, true).apply()
+                    navController.navigate("main") {
+                        popUpTo("onboarding") { inclusive = true }
+                    }
                 }
             })
         }
         composable("main") {
             MainScreen(
-                onNavigateToExams = { navController.navigate("exams") },
-                onNavigateToTeachers = { navController.navigate("teachers") },
-                onNavigateToAssignments = { navController.navigate("assignments") },
-                onNavigateToNotes = { navController.navigate("notes") },
-                onNavigateToSettings = { navController.navigate("settings") },
-                onNavigateToPersonalDetails = { navController.navigate("personal_details") },
-                onNavigateToAttendance = { navController.navigate("attendance") },
-                onNavigateToAbout = { navController.navigate("about") },
-                onNavigateToSubjectDetail = { subjectId -> navController.navigate("subject_detail/$subjectId") },
-                onNavigateToNoteInfo = { noteId -> navController.navigate("note_info/$noteId") },
-                onNavigateToEditTeacher = { teacherId -> navController.navigate("teachers?editTeacherId=$teacherId") }
+                onNavigateToExams = { navigateTo("exams") },
+                onNavigateToTeachers = { navigateTo("teachers") },
+                onNavigateToAssignments = { navigateTo("assignments") },
+                onNavigateToNotes = { navigateTo("notes") },
+                onNavigateToSettings = { navigateTo("settings") },
+                onNavigateToPersonalDetails = { navigateTo("personal_details") },
+                onNavigateToAttendance = { navigateTo("attendance") },
+                onNavigateToAbout = { navigateTo("about") },
+                onNavigateToSubjectDetail = { subjectId -> navigateTo("subject_detail/$subjectId") },
+                onNavigateToNoteInfo = { noteId -> navigateTo("note_info/$noteId") },
+                onNavigateToEditTeacher = { teacherId -> navigateTo("teachers?editTeacherId=$teacherId") }
             )
         }
         composable("attendance") {
-            AttendanceScreen(onBack = { navController.popBackStack() })
+            AttendanceScreen(onBack = navigateBack)
         }
         composable("personal_details") {
-            PersonalDetailsScreen(onBack = { navController.popBackStack() })
+            PersonalDetailsScreen(onBack = navigateBack)
         }
         composable("exams") {
-            ExamsScreen(onBack = { navController.popBackStack() })
+            ExamsScreen(onBack = navigateBack)
         }
         composable(
             route = "teachers?editTeacherId={teacherId}",
@@ -64,17 +80,17 @@ fun TimetableApp() {
         ) { backStackEntry ->
             val teacherId = backStackEntry.arguments?.getInt("teacherId") ?: -1
             TeachersScreen(
-                onBack = { navController.popBackStack() },
+                onBack = navigateBack,
                 editTeacherId = if (teacherId != -1) teacherId else null
             )
         }
         composable("assignments") {
-            AssignmentsScreen(onBack = { navController.popBackStack() })
+            AssignmentsScreen(onBack = navigateBack)
         }
         composable("notes") {
             NotesScreen(
-                onBack = { navController.popBackStack() },
-                onSubjectClick = { subjectId -> navController.navigate("subject_detail/$subjectId") }
+                onBack = navigateBack,
+                onSubjectClick = { subjectId -> navigateTo("subject_detail/$subjectId") }
             )
         }
         composable(
@@ -82,7 +98,7 @@ fun TimetableApp() {
             arguments = listOf(navArgument("noteId") { type = NavType.IntType })
         ) { backStackEntry ->
             val noteId = backStackEntry.arguments?.getInt("noteId") ?: 0
-            NoteInfoScreen(noteId = noteId, onBack = { navController.popBackStack() })
+            NoteInfoScreen(noteId = noteId, onBack = navigateBack)
         }
         composable(
             route = "subject_detail/{subjectId}",
@@ -91,20 +107,20 @@ fun TimetableApp() {
             val subjectId = backStackEntry.arguments?.getInt("subjectId") ?: 0
             SubjectDetailScreen(
                 subjectId = subjectId, 
-                onBack = { navController.popBackStack() },
-                onNoteClick = { noteId -> navController.navigate("note_info/$noteId") }
+                onBack = navigateBack,
+                onNoteClick = { noteId -> navigateTo("note_info/$noteId") }
             )
         }
         composable("settings") {
             SettingsScreen(
-                onBack = { navController.popBackStack() },
-                onNavigateToArchives = { navController.navigate("archives") }
+                onBack = navigateBack,
+                onNavigateToArchives = { navigateTo("archives") }
             )
         }
         composable("archives") {
             ArchivesScreen(
-                onBack = { navController.popBackStack() },
-                onNavigateToArchiveDetail = { fileName -> navController.navigate("archive_detail/$fileName") }
+                onBack = navigateBack,
+                onNavigateToArchiveDetail = { fileName -> navigateTo("archive_detail/$fileName") }
             )
         }
         composable(
@@ -112,10 +128,10 @@ fun TimetableApp() {
             arguments = listOf(navArgument("fileName") { type = NavType.StringType })
         ) { backStackEntry ->
             val fileName = backStackEntry.arguments?.getString("fileName") ?: ""
-            ArchiveDetailScreen(fileName = fileName, onBack = { navController.popBackStack() })
+            ArchiveDetailScreen(fileName = fileName, onBack = navigateBack)
         }
         composable("about") {
-            AboutScreen(onBack = { navController.popBackStack() })
+            AboutScreen(onBack = navigateBack)
         }
     }
 }
