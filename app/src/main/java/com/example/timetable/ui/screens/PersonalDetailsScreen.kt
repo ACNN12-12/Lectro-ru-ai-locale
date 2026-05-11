@@ -187,19 +187,22 @@ fun PersonalDetailsScreen(onBack: () -> Unit, viewModel: PersonalDetailsViewMode
                 value = viewModel.name, 
                 onValueChange = { viewModel.updateField(newName = it) }, 
                 label = { Text(stringResource(R.string.name_label)) }, 
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
             )
             OutlinedTextField(
                 value = viewModel.email, 
                 onValueChange = { viewModel.updateField(newEmail = it) }, 
                 label = { Text(stringResource(R.string.email_label)) }, 
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
             )
             OutlinedTextField(
                 value = viewModel.roll, 
                 onValueChange = { viewModel.updateField(newRoll = it) }, 
                 label = { Text(stringResource(R.string.roll_number_label)) }, 
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
             )
             OutlinedTextField(
                 value = viewModel.other, 

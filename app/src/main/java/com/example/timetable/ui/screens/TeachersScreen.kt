@@ -235,8 +235,8 @@ fun AddTeacherDialog(
         title = { Text(if (initialTeacher.id == 0) stringResource(R.string.add_teacher) else stringResource(R.string.edit_teacher)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.name)) })
-                OutlinedTextField(value = post, onValueChange = { post = it }, label = { Text(stringResource(R.string.post)) })
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text(stringResource(R.string.name)) }, singleLine = true)
+                OutlinedTextField(value = post, onValueChange = { post = it }, label = { Text(stringResource(R.string.post)) }, singleLine = true)
                 OutlinedTextField(
                     value = phone, 
                     onValueChange = { input ->
@@ -245,10 +245,11 @@ fun AddTeacherDialog(
                         }
                     }, 
                     label = { Text(stringResource(R.string.phone_number)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    singleLine = true
                 )
-                OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text(stringResource(R.string.email)) })
-                OutlinedTextField(value = cabinNumber, onValueChange = { cabinNumber = it }, label = { Text(stringResource(R.string.cabin_number)) })
+                OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text(stringResource(R.string.email)) }, singleLine = true)
+                OutlinedTextField(value = cabinNumber, onValueChange = { cabinNumber = it }, label = { Text(stringResource(R.string.cabin_number)) }, singleLine = true)
             }
         },
         confirmButton = {
