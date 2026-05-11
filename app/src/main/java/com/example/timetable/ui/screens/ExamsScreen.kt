@@ -35,8 +35,10 @@ import com.example.timetable.utils.NotificationHelper
 import com.example.timetable.utils.TimeUtils
 import com.example.timetable.utils.WidgetUtils
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -56,15 +58,26 @@ class ExamViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadExams() {
-        exams.clear()
-        exams.addAll(db.getExam())
+        viewModelScope.launch(Dispatchers.IO) {
+            val data = db.getExam()
+            withContext(Dispatchers.Main) {
+                exams.clear()
+                exams.addAll(data)
+            }
+        }
     }
 
     fun loadSuggestions() {
-        subjects.clear()
-        subjects.addAll(db.getSubjectsList())
-        teachers.clear()
-        teachers.addAll(db.getTeachersList())
+        viewModelScope.launch(Dispatchers.IO) {
+            val subList = db.getSubjectsList()
+            val teacherList = db.getTeachersList()
+            withContext(Dispatchers.Main) {
+                subjects.clear()
+                subjects.addAll(subList)
+                teachers.clear()
+                teachers.addAll(teacherList)
+            }
+        }
     }
 
     fun getSubjectDetails(name: String): com.example.timetable.model.Week? {
@@ -72,18 +85,22 @@ class ExamViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun deleteExam(exam: Exam) {
-        db.deleteExamById(exam)
-        loadExams()
-        notificationHelper.scheduleEventsForToday()
-        viewModelScope.launch { WidgetUtils.refreshAllWidgets(getApplication()) }
+        viewModelScope.launch(Dispatchers.IO) {
+            db.deleteExamById(exam)
+            loadExams()
+            notificationHelper.scheduleEventsForToday()
+            WidgetUtils.refreshAllWidgets(getApplication())
+        }
     }
 
     fun insertExam(exam: Exam) {
-        db.insertExam(exam)
-        loadExams()
-        loadSuggestions()
-        notificationHelper.scheduleEventsForToday()
-        viewModelScope.launch { WidgetUtils.refreshAllWidgets(getApplication()) }
+        viewModelScope.launch(Dispatchers.IO) {
+            db.insertExam(exam)
+            loadExams()
+            loadSuggestions()
+            notificationHelper.scheduleEventsForToday()
+            WidgetUtils.refreshAllWidgets(getApplication())
+        }
     }
 }
 

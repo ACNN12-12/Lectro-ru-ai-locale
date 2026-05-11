@@ -16,7 +16,9 @@ import com.example.timetable.utils.DbHelper
 import com.example.timetable.utils.NotificationHelper
 import com.example.timetable.utils.WidgetUtils
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -44,15 +46,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     
     enum class SearchResultType { SUBJECT, NOTE, ASSIGNMENT, TEACHER }
 
-    fun searchAcrossApp(query: String): List<SearchResult> {
-        if (query.isBlank()) return emptyList()
-        val results = mutableListOf<SearchResult>()
-        val lowercaseQuery = query.lowercase()
+    var searchResults = mutableStateListOf<SearchResult>()
+        private set
 
-        // 1. Search Subjects (Timetable slots)
-        db.getAllWeeks().forEach { week ->
-            if (week.subject.lowercase().contains(lowercaseQuery) || 
-                (week.teacher?.lowercase()?.contains(lowercaseQuery) == true)) {
+    fun searchAcrossApp(query: String) {
+        searchQuery = query
+        if (query.isBlank()) {
+            searchResults.clear()
+            return
+        }
+        
+        viewModelScope.launch(Dispatchers.IO) {
+            val results = mutableListOf<SearchResult>()
+
+            // 1. Search Subjects (Timetable slots)
+            db.searchWeeks(query).forEach { week ->
                 results.add(SearchResult(
                     SearchResultType.SUBJECT,
                     week.subject,
@@ -61,12 +69,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     week.id
                 ))
             }
-        }
 
-        // 2. Search Notes
-        db.getNote().forEach { note ->
-            if (note.title.lowercase().contains(lowercaseQuery) || 
-                note.text.lowercase().contains(lowercaseQuery)) {
+            // 2. Search Notes
+            db.searchNotes(query).forEach { note ->
                 results.add(SearchResult(
                     SearchResultType.NOTE,
                     note.title,
@@ -75,13 +80,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     note.id
                 ))
             }
-        }
 
-        // 3. Search Assignments (Homework)
-        db.getHomework().forEach { hw ->
-            if (hw.title.lowercase().contains(lowercaseQuery) || 
-                hw.subject.lowercase().contains(lowercaseQuery) || 
-                hw.description.lowercase().contains(lowercaseQuery)) {
+            // 3. Search Assignments (Homework)
+            db.searchHomework(query).forEach { hw ->
                 results.add(SearchResult(
                     SearchResultType.ASSIGNMENT,
                     hw.title ?: "Untitled",
@@ -90,13 +91,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     hw.id
                 ))
             }
-        }
 
-        // 4. Search Teachers
-        db.getTeacher().forEach { teacher ->
-            if (teacher.name.lowercase().contains(lowercaseQuery) ||
-                teacher.post.lowercase().contains(lowercaseQuery) ||
-                (teacher.email?.lowercase()?.contains(lowercaseQuery) == true)) {
+            // 4. Search Teachers
+            db.searchTeachers(query).forEach { teacher ->
                 results.add(SearchResult(
                     SearchResultType.TEACHER,
                     teacher.name,
@@ -105,31 +102,80 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     teacher.id
                 ))
             }
-        }
 
-        return results.distinctBy { it.type.name + it.id }
+            val distinctResults = results.distinctBy { it.type.name + it.id }
+            withContext(Dispatchers.Main) {
+                searchResults.clear()
+                searchResults.addAll(distinctResults)
+            }
+        }
+    }
+
+    fun loadAllWeekData(days: List<String>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val allData = mutableMapOf<String, List<Week>>()
+            val attendance = mutableMapOf<Int, String?>()
+            val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            
+            days.forEach { day ->
+                val data = db.getWeek(day)
+                allData[day] = data
+                data.forEach { slot ->
+                    attendance[slot.id] = db.getAttendanceStatus(slot.id, date)
+                }
+            }
+            
+            withContext(Dispatchers.Main) {
+                weekData.putAll(allData)
+                todayAttendance.putAll(attendance)
+            }
+        }
     }
 
     fun loadWeekData(day: String) {
-        weekData[day] = db.getWeek(day)
-        loadAttendance()
+        viewModelScope.launch(Dispatchers.IO) {
+            val data = db.getWeek(day)
+            val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            val attendance = mutableMapOf<Int, String?>()
+            data.forEach { slot ->
+                attendance[slot.id] = db.getAttendanceStatus(slot.id, date)
+            }
+            withContext(Dispatchers.Main) {
+                weekData[day] = data
+                todayAttendance.putAll(attendance)
+            }
+        }
     }
 
     fun loadAttendance() {
-        val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        weekData.values.flatten().forEach { slot ->
-            todayAttendance[slot.id] = db.getAttendanceStatus(slot.id, date)
+        viewModelScope.launch(Dispatchers.IO) {
+            val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            val attendance = mutableMapOf<Int, String?>()
+            weekData.values.flatten().forEach { slot ->
+                attendance[slot.id] = db.getAttendanceStatus(slot.id, date)
+            }
+            withContext(Dispatchers.Main) {
+                todayAttendance.putAll(attendance)
+            }
         }
     }
 
     fun loadSuggestions() {
-        userDetail = db.getUserDetail()
-        subjects.clear()
-        subjects.addAll(db.getSubjectsList())
-        allSubjects.clear()
-        allSubjects.addAll(db.allSubjects)
-        teachers.clear()
-        teachers.addAll(db.getTeachersList())
+        viewModelScope.launch(Dispatchers.IO) {
+            val details = db.getUserDetail()
+            val subList = db.getSubjectsList()
+            val allSub = db.allSubjects
+            val teacherList = db.getTeachersList()
+            withContext(Dispatchers.Main) {
+                userDetail = details
+                subjects.clear()
+                subjects.addAll(subList)
+                allSubjects.clear()
+                allSubjects.addAll(allSub)
+                teachers.clear()
+                teachers.addAll(teacherList)
+            }
+        }
     }
 
     fun getSubjectIdByName(name: String): Int {
@@ -141,38 +187,50 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun deleteWeek(week: Week) {
-        db.deleteWeekById(week)
-        loadWeekData(week.fragment)
-        notificationHelper.scheduleEventsForToday()
-        viewModelScope.launch { WidgetUtils.refreshAllWidgets(getApplication()) }
+        viewModelScope.launch(Dispatchers.IO) {
+            db.deleteWeekById(week)
+            loadWeekData(week.fragment)
+            notificationHelper.scheduleEventsForToday()
+            WidgetUtils.refreshAllWidgets(getApplication())
+        }
     }
     
     fun insertWeek(week: Week) {
-        db.insertWeek(week)
-        loadWeekData(week.fragment)
-        loadSuggestions()
-        notificationHelper.scheduleEventsForToday()
-        viewModelScope.launch { WidgetUtils.refreshAllWidgets(getApplication()) }
+        viewModelScope.launch(Dispatchers.IO) {
+            db.insertWeek(week)
+            loadWeekData(week.fragment)
+            loadSuggestions()
+            notificationHelper.scheduleEventsForToday()
+            WidgetUtils.refreshAllWidgets(getApplication())
+        }
     }
 
     fun updateWeek(week: Week) {
-        db.updateWeek(week)
-        loadWeekData(week.fragment)
-        loadSuggestions()
-        notificationHelper.scheduleEventsForToday()
-        viewModelScope.launch { WidgetUtils.refreshAllWidgets(getApplication()) }
+        viewModelScope.launch(Dispatchers.IO) {
+            db.updateWeek(week)
+            loadWeekData(week.fragment)
+            loadSuggestions()
+            notificationHelper.scheduleEventsForToday()
+            WidgetUtils.refreshAllWidgets(getApplication())
+        }
     }
 
     fun updateAttendance(weekId: Int, subjectName: String, type: String) {
-        val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        db.updateAttendance(weekId, subjectName, type, date)
-        todayAttendance[weekId] = type
-        loadSuggestions()
-        
-        viewModelScope.launch { WidgetUtils.refreshAllWidgets(getApplication()) }
+        viewModelScope.launch(Dispatchers.IO) {
+            val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            db.updateAttendance(weekId, subjectName, type, date)
+            withContext(Dispatchers.Main) {
+                todayAttendance[weekId] = type
+            }
+            loadSuggestions()
+            WidgetUtils.refreshAllWidgets(getApplication())
+        }
     }
 
     fun getAttendanceStatus(weekId: Int): String? {
+        // This is still blocking but called in derivedStateOf or remember in some places.
+        // For now, let's leave it as is to avoid breaking more things, 
+        // but loadAttendance handles the main screen.
         val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         return db.getAttendanceStatus(weekId, date)
     }
@@ -180,15 +238,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun getAttendanceForSubject(subjectName: String) = db.getAttendanceForSubject(subjectName)
 
     fun updateAttendanceByDate(weekId: Int, subjectName: String, type: String, date: String) {
-        db.updateAttendanceByDate(weekId, subjectName, type, date)
-        loadSuggestions()
-        loadAttendance()
+        viewModelScope.launch(Dispatchers.IO) {
+            db.updateAttendanceByDate(weekId, subjectName, type, date)
+            loadSuggestions()
+            loadAttendance()
+        }
     }
 
     fun deleteAttendanceRecord(weekId: Int, subjectName: String, date: String) {
-        db.deleteAttendanceRecord(weekId, subjectName, date)
-        loadSuggestions()
-        loadAttendance()
+        viewModelScope.launch(Dispatchers.IO) {
+            db.deleteAttendanceRecord(weekId, subjectName, date)
+            loadSuggestions()
+            loadAttendance()
+        }
     }
 
     fun getSubjectByName(name: String) = db.getSubjectByName(name)

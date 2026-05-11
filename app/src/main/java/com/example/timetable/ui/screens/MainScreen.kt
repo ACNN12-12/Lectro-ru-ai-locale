@@ -153,7 +153,13 @@ fun MainScreen(
     
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
-    val searchResults = remember(searchQuery) { viewModel.searchAcrossApp(searchQuery) }
+    val searchResults = viewModel.searchResults
+    LaunchedEffect(searchQuery) {
+        if (searchQuery.isNotEmpty()) {
+            kotlinx.coroutines.delay(300)
+        }
+        viewModel.searchAcrossApp(searchQuery)
+    }
 
     // Reactive time for Ongoing Class FAB
     var currentTimeMillis by remember { mutableLongStateOf(System.currentTimeMillis()) }
@@ -179,9 +185,8 @@ fun MainScreen(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                days.forEach { viewModel.loadWeekData(it) }
+                viewModel.loadAllWeekData(days)
                 viewModel.loadSuggestions()
-                viewModel.loadAttendance()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -191,7 +196,7 @@ fun MainScreen(
     }
 
     LaunchedEffect(days) {
-        days.forEach { viewModel.loadWeekData(it) }
+        viewModel.loadAllWeekData(days)
         viewModel.loadSuggestions()
     }
     

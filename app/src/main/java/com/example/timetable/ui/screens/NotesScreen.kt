@@ -13,7 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.example.timetable.R
 import com.example.timetable.model.Note
 import com.example.timetable.model.Subject
@@ -48,50 +52,63 @@ class NoteViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadSubjects() {
-        allSubjects.clear()
-        val subs = db.allSubjects
-        for (sub in subs) {
-            val combinedTeachers = db.getTeachersForSubject(sub.name)
-            if (!combinedTeachers.isNullOrBlank()) {
-                sub.teacher = combinedTeachers
+        viewModelScope.launch(Dispatchers.IO) {
+            val subs = db.allSubjects
+            for (sub in subs) {
+                val combinedTeachers = db.getTeachersForSubject(sub.name)
+                if (!combinedTeachers.isNullOrBlank()) {
+                    sub.teacher = combinedTeachers
+                }
+            }
+            val subNames = db.getSubjectsList()
+            withContext(Dispatchers.Main) {
+                allSubjects.clear()
+                allSubjects.addAll(subs)
+                subjectNames.clear()
+                subjectNames.addAll(subNames)
             }
         }
-        allSubjects.addAll(subs)
-        subjectNames.clear()
-        subjectNames.addAll(db.getSubjectsList())
     }
 
     fun insertNote(note: Note, subjectName: String? = null) {
-        if (!subjectName.isNullOrBlank()) {
-            val subject = db.getSubjectDetails(subjectName)
-            if (subject == null) {
-                db.insertSubject(subjectName, note.color, "", "")
+        viewModelScope.launch(Dispatchers.IO) {
+            if (!subjectName.isNullOrBlank()) {
+                val subject = db.getSubjectDetails(subjectName)
+                if (subject == null) {
+                    db.insertSubject(subjectName, note.color, "", "")
+                }
+                note.subjectId = db.getAllSubjects().find { it.name == subjectName }?.id ?: -1
             }
-            note.subjectId = db.getAllSubjects().find { it.name == subjectName }?.id ?: -1
-        }
-        db.insertNote(note)
-        loadSubjects()
-    }
-
-    fun moveSubject(index: Int, up: Boolean) {
-        val targetIndex = if (up) index - 1 else index + 1
-        if (targetIndex in allSubjects.indices) {
-            val sub1 = allSubjects[index]
-            val sub2 = allSubjects[targetIndex]
-            db.updateSubjectSortOrder(sub1.id, targetIndex)
-            db.updateSubjectSortOrder(sub2.id, index)
+            db.insertNote(note)
             loadSubjects()
         }
     }
 
+    fun moveSubject(index: Int, up: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val targetIndex = if (up) index - 1 else index + 1
+            if (targetIndex in allSubjects.indices) {
+                val sub1 = allSubjects[index]
+                val sub2 = allSubjects[targetIndex]
+                db.updateSubjectSortOrder(sub1.id, targetIndex)
+                db.updateSubjectSortOrder(sub2.id, index)
+                loadSubjects()
+            }
+        }
+    }
+
     fun updateSubject(subject: Subject) {
-        db.updateSubject(subject.id, subject.name, subject.color, subject.teacher, subject.room)
-        loadSubjects()
+        viewModelScope.launch(Dispatchers.IO) {
+            db.updateSubject(subject.id, subject.name, subject.color, subject.teacher, subject.room)
+            loadSubjects()
+        }
     }
 
     fun deleteSubject(id: Int) {
-        db.deleteSubjectById(id)
-        loadSubjects()
+        viewModelScope.launch(Dispatchers.IO) {
+            db.deleteSubjectById(id)
+            loadSubjects()
+        }
     }
 }
 

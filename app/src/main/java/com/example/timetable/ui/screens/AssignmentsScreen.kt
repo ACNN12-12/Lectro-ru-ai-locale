@@ -33,7 +33,9 @@ import com.example.timetable.utils.DbHelper
 import com.example.timetable.utils.NotificationHelper
 import com.example.timetable.utils.WidgetUtils
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -51,13 +53,23 @@ class AssignmentsViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun loadAssignments() {
-        assignments.clear()
-        assignments.addAll(db.getHomework())
+        viewModelScope.launch(Dispatchers.IO) {
+            val data = db.getHomework()
+            withContext(Dispatchers.Main) {
+                assignments.clear()
+                assignments.addAll(data)
+            }
+        }
     }
 
     fun loadSuggestions() {
-        subjects.clear()
-        subjects.addAll(db.getSubjectsList())
+        viewModelScope.launch(Dispatchers.IO) {
+            val subList = db.getSubjectsList()
+            withContext(Dispatchers.Main) {
+                subjects.clear()
+                subjects.addAll(subList)
+            }
+        }
     }
 
     fun getSubjectDetails(name: String): com.example.timetable.model.Week? {
@@ -65,33 +77,41 @@ class AssignmentsViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun deleteAssignment(assignment: Homework) {
-        db.deleteHomeworkById(assignment)
-        loadAssignments()
-        notificationHelper.scheduleEventsForToday()
-        viewModelScope.launch { WidgetUtils.refreshAllWidgets(getApplication()) }
+        viewModelScope.launch(Dispatchers.IO) {
+            db.deleteHomeworkById(assignment)
+            loadAssignments()
+            notificationHelper.scheduleEventsForToday()
+            WidgetUtils.refreshAllWidgets(getApplication())
+        }
     }
 
     fun insertAssignment(assignment: Homework) {
-        db.insertHomework(assignment)
-        loadAssignments()
-        loadSuggestions()
-        notificationHelper.scheduleEventsForToday()
-        viewModelScope.launch { WidgetUtils.refreshAllWidgets(getApplication()) }
+        viewModelScope.launch(Dispatchers.IO) {
+            db.insertHomework(assignment)
+            loadAssignments()
+            loadSuggestions()
+            notificationHelper.scheduleEventsForToday()
+            WidgetUtils.refreshAllWidgets(getApplication())
+        }
     }
 
     fun updateAssignment(assignment: Homework) {
-        db.updateHomework(assignment)
-        loadAssignments()
-        notificationHelper.scheduleEventsForToday()
-        viewModelScope.launch { WidgetUtils.refreshAllWidgets(getApplication()) }
+        viewModelScope.launch(Dispatchers.IO) {
+            db.updateHomework(assignment)
+            loadAssignments()
+            notificationHelper.scheduleEventsForToday()
+            WidgetUtils.refreshAllWidgets(getApplication())
+        }
     }
 
     fun toggleComplete(assignment: Homework) {
-        assignment.setCompleted(if (assignment.getCompleted() == 1) 0 else 1)
-        db.updateHomework(assignment)
-        loadAssignments()
-        notificationHelper.scheduleEventsForToday()
-        viewModelScope.launch { WidgetUtils.refreshAllWidgets(getApplication()) }
+        viewModelScope.launch(Dispatchers.IO) {
+            assignment.setCompleted(if (assignment.getCompleted() == 1) 0 else 1)
+            db.updateHomework(assignment)
+            loadAssignments()
+            notificationHelper.scheduleEventsForToday()
+            WidgetUtils.refreshAllWidgets(getApplication())
+        }
     }
 }
 

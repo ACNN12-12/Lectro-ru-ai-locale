@@ -17,7 +17,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.example.timetable.R
 import com.example.timetable.model.Teacher
 import com.example.timetable.ui.theme.themedContainerColor
@@ -33,33 +37,46 @@ class TeacherViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun loadTeachers() {
-        teachers.clear()
-        teachers.addAll(db.getTeacher())
+        viewModelScope.launch(Dispatchers.IO) {
+            val data = db.getTeacher()
+            withContext(Dispatchers.Main) {
+                teachers.clear()
+                teachers.addAll(data)
+            }
+        }
     }
 
     fun deleteTeacher(teacher: Teacher) {
-        db.deleteTeacherById(teacher)
-        loadTeachers()
+        viewModelScope.launch(Dispatchers.IO) {
+            db.deleteTeacherById(teacher)
+            loadTeachers()
+        }
     }
 
     fun insertTeacher(teacher: Teacher) {
-        db.insertTeacher(teacher)
-        loadTeachers()
+        viewModelScope.launch(Dispatchers.IO) {
+            db.insertTeacher(teacher)
+            loadTeachers()
+        }
     }
 
     fun updateTeacher(teacher: Teacher) {
-        db.updateTeacher(teacher)
-        loadTeachers()
+        viewModelScope.launch(Dispatchers.IO) {
+            db.updateTeacher(teacher)
+            loadTeachers()
+        }
     }
 
     fun moveTeacher(index: Int, up: Boolean) {
-        val targetIndex = if (up) index - 1 else index + 1
-        if (targetIndex in teachers.indices) {
-            val t1 = teachers[index]
-            val t2 = teachers[targetIndex]
-            db.updateTeacherSortOrder(t1.id, targetIndex)
-            db.updateTeacherSortOrder(t2.id, index)
-            loadTeachers()
+        viewModelScope.launch(Dispatchers.IO) {
+            val targetIndex = if (up) index - 1 else index + 1
+            if (targetIndex in teachers.indices) {
+                val t1 = teachers[index]
+                val t2 = teachers[targetIndex]
+                db.updateTeacherSortOrder(t1.id, targetIndex)
+                db.updateTeacherSortOrder(t2.id, index)
+                loadTeachers()
+            }
         }
     }
 }
