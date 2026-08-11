@@ -364,9 +364,9 @@ fun AddExamDialog(
                     val minute = parsedTime?.second ?: Calendar.getInstance().get(Calendar.MINUTE)
                     TimePickerDialog(context, { _, h, m ->
                         time = TimeUtils.get24HourString(h, m)
-                    }, hour, minute, false).show()
+                    }, hour, minute, true).show() // <-- ТУТ ИЗМЕНИЛИ НА TRUE (24-часовой выбор времени)
                 }) {
-                    Text(if (time.isEmpty()) stringResource(R.string.select_time) else TimeUtils.formatTo12Hour(time))
+                    Text(if (time.isEmpty()) stringResource(R.string.select_time) else time) // <-- ТУТ УБРАЛИ КОНВЕРТЕР В 12 ЧАСОВ
                 }
             }
         },
@@ -417,7 +417,7 @@ fun ExamItem(exam: Exam, onDelete: () -> Unit, countdownText: String?) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = exam.subject, style = MaterialTheme.typography.titleLarge)
-                val dateTimeText = if (exam.time.isNullOrBlank()) exam.date else "${exam.date} в ${TimeUtils.formatTo12Hour(exam.time)}"
+                val dateTimeText = if (exam.time.isNullOrBlank()) exam.date else "${exam.date} в ${exam.time}" // <-- ТУТ УБРАЛИ КОНВЕРТЕР В 12 ЧАСОВ
                 Text(text = dateTimeText, style = MaterialTheme.typography.bodyMedium)
                 
                 if (!countdownText.isNullOrBlank()) {
