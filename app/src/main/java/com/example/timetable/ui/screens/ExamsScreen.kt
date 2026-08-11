@@ -510,10 +510,29 @@ private fun getExamCountdown(exam: Exam): String? {
                 "Через $diffHours $hoursWord"
             }
             else -> {
-                val remainingHours = diffHours % 24
+                val remainingHours = (diffHours % 24).toInt()
+                val rem10Days = (diffDays % 10).toInt()
+                val rem100Days = (diffDays % 100).toInt()
+                
                 val daysWord = when {
-                    diffDays % 10 == 1L && diffDays % 100 != 11L -> "день"
-                    diffDays % 10 in 2..4 && diffDays % 100 !in 12..14 -> "дня"
+                    rem10Days == 1 && rem100Days != 11 -> "день"
+                    rem10Days in 2..4 && rem100Days !in 12..14 -> "дня"
                     else -> "дней"
                 }
-                if (remainingHour
+                
+                if (remainingHours > 0) {
+                    val rem10Hours = remainingHours % 10
+                    val rem100Hours = remainingHours % 100
+                    val hoursWord = when {
+                        rem10Hours == 1 && rem100Hours != 11 -> "час"
+                        rem10Hours in 2..4 && rem100Hours !in 12..14 -> "часа"
+                        else -> "часов"
+                    }
+                    "Через $diffDays $daysWord $remainingHours $hoursWord"
+                } else {
+                    "Через $diffDays $daysWord"
+                }
+            }
+        }
+    }
+}
