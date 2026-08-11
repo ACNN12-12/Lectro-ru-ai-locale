@@ -39,7 +39,7 @@ fun AddSubjectDialog(
     var room by remember { mutableStateOf(initialWeek.room ?: "") }
     var fromTime by remember { mutableStateOf(initialWeek.fromTime ?: "") }
     var toTime by remember { mutableStateOf(initialWeek.toTime ?: "") }
-    var color by remember { mutableIntStateOf(if (initialWeek.color != 0) initialWeek.color else Color.Gray.toArgb()) }
+    var color by remember { mutableStateOf(if (initialWeek.color != 0) initialWeek.color else Color.Gray.toArgb()) }
 
     var subjectExpanded by remember { mutableStateOf(false) }
     var teacherExpanded by remember { mutableStateOf(false) }
@@ -154,12 +154,12 @@ fun AddSubjectDialog(
                             val minute = time?.second ?: Calendar.getInstance().get(Calendar.MINUTE)
                             TimePickerDialog(context, { _, h, m ->
                                 fromTime = TimeUtils.get24HourString(h, m)
-                            }, hour, minute, false).show()
+                            }, hour, minute, true).show() // <-- СДЕЛАЛИ TRUE
                         },
                         modifier = Modifier.weight(1f),
                         contentPadding = PaddingValues(horizontal = 4.dp)
                     ) {
-                        Text(if (fromTime.isEmpty()) "Start Time" else TimeUtils.formatTo12Hour(fromTime))
+                        Text(if (fromTime.isEmpty()) "Начало" else fromTime) // <-- УБРАЛИ 12-ЧАСОВОЙ ФОРМАТ
                     }
                     Button(
                         onClick = {
@@ -168,12 +168,12 @@ fun AddSubjectDialog(
                             val minute = time?.second ?: Calendar.getInstance().get(Calendar.MINUTE)
                             TimePickerDialog(context, { _, h, m ->
                                 toTime = TimeUtils.get24HourString(h, m)
-                            }, hour, minute, false).show()
+                            }, hour, minute, true).show() // <-- СДЕЛАЛИ TRUE
                         },
                         modifier = Modifier.weight(1f),
                         contentPadding = PaddingValues(horizontal = 4.dp)
                     ) {
-                        Text(if (toTime.isEmpty()) "End Time" else TimeUtils.formatTo12Hour(toTime))
+                        Text(if (toTime.isEmpty()) "Конец" else toTime) // <-- УБРАЛИ 12-ЧАСОВОЙ ФОРМАТ
                     }
                 }
 
@@ -184,21 +184,20 @@ fun AddSubjectDialog(
         confirmButton = {
             TextButton(onClick = {
                 val errorMessage = when {
-                    subject.isBlank() -> "Please enter Subject"
-                    fromTime.isBlank() -> "Please select Start Time"
-                    toTime.isBlank() -> "Please select End Time"
-                    // fromTime >= toTime -> "Start Time must be before End Time"
+                    subject.isBlank() -> "Пожалуйста, введите название предмета"
+                    fromTime.isBlank() -> "Пожалуйста, выберите время начала"
+                    toTime.isBlank() -> "Пожалуйста, выберите время окончания"
                     existingSlots.any { existing ->
                         val fromMin = TimeUtils.timeToMinutes(fromTime)
                         var toMin = TimeUtils.timeToMinutes(toTime)
-                        if (toMin <= fromMin) toMin += 24 * 60 // Allow midnight crossing
+                        if (toMin <= fromMin) toMin += 24 * 60
                         
                         val exFrom = TimeUtils.timeToMinutes(existing.fromTime)
                         var exTo = TimeUtils.timeToMinutes(existing.toTime)
                         if (exTo <= exFrom) exTo += 24 * 60
 
                         existing.id != initialWeek.id && fromMin < exTo && toMin > exFrom
-                    } -> "Time clashes with another class: ${existingSlots.find { existing -> 
+                    } -> "Время пересекается с другим занятием: ${existingSlots.find { existing -> 
                         val fromMin = TimeUtils.timeToMinutes(fromTime)
                         var toMin = TimeUtils.timeToMinutes(toTime)
                         if (toMin <= fromMin) toMin += 24 * 60
