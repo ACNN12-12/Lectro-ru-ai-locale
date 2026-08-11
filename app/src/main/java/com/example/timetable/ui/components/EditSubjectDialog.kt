@@ -15,20 +15,20 @@ fun EditSubjectDialog(subject: Subject, onDismiss: () -> Unit, onSave: (Subject)
     var name by remember { mutableStateOf(subject.name) }
     var teacher by remember { mutableStateOf(subject.teacher ?: "") }
     var room by remember { mutableStateOf(subject.room ?: "") }
-    var color by remember { mutableIntStateOf(subject.color) }
+    var color by remember { mutableStateOf(subject.color) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Edit Subject") },
+        title = { Text("Изменить предмет") },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Subject Name") }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = teacher, onValueChange = { teacher = it }, label = { Text("Teacher") }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = room, onValueChange = { room = it }, label = { Text("Room") }, modifier = Modifier.fillMaxWidth())
-                Text("Color")
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Название предмета") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = teacher, onValueChange = { teacher = it }, label = { Text("Преподаватель") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = room, onValueChange = { room = it }, label = { Text("Аудитория") }, modifier = Modifier.fillMaxWidth())
+                Text("Цвет")
                 ColorPickerRow(selectedColor = color, onColorSelected = { color = it })
             }
         },
@@ -42,10 +42,10 @@ fun EditSubjectDialog(subject: Subject, onDismiss: () -> Unit, onSave: (Subject)
                         this.color = color
                     })
                 }
-            }) { Text("Save") }
+            }) { Text("Сохранить") }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text("Отмена") }
         }
     )
 }
