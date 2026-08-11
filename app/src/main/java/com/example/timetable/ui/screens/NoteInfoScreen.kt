@@ -65,8 +65,8 @@ import kotlin.math.roundToInt
 class NoteInfoViewModel(application: Application) : AndroidViewModel(application) {
     private val db = DbHelper(application)
     var note      by mutableStateOf<Note?>(null)
-    var wordCount by mutableIntStateOf(0)
-    var charCount by mutableIntStateOf(0)
+    var wordCount by mutableStateOf(0)
+    var charCount by mutableStateOf(0)
 
     fun loadNote(id: Int) { note = db.getNote().find { it.id == id } }
     fun saveNote(note: Note) { db.updateNote(note) }
@@ -161,16 +161,6 @@ private fun getFormattingState(textValue: TextFieldValue): FormattingState {
 // Text input processor
 // ─────────────────────────────────────────────
 
-/**
- * Called on every keystroke. Handles two special cases when Enter is pressed:
- *
- * A) Auto-close unclosed inline tags on the current line.
- *    e.g.  **hello  →  **hello**\n
- *
- * B) List continuation / exit.
- *    "* item" + Enter  →  "* item\n* "
- *    "* "     + Enter  →  "\n"   (empty item exits list)
- */
 private fun processTextInput(newValue: TextFieldValue, oldValue: TextFieldValue): TextFieldValue {
     if (newValue.text.length <= oldValue.text.length) return newValue
     val cursorAfter = newValue.selection.start
@@ -277,7 +267,7 @@ fun NoteInfoScreen(
 
     var title     by remember(note) { mutableStateOf(note.title) }
     var textValue by remember(note) { mutableStateOf(TextFieldValue(note.text)) }
-    var color     by remember(note) { mutableIntStateOf(note.color) }
+    var color     by remember(note) { mutableStateOf(note.color) }
 
     var showColorPicker       by remember { mutableStateOf(false) }
     var showFindReplace       by remember { mutableStateOf(false) }
@@ -366,7 +356,7 @@ fun NoteInfoScreen(
                 title = title, onTitleChange = { title = it; isSaved = false },
                 isSaved = isSaved, accentColor = accentColor,
                 onBack        = { triggerSave(); onBack() },
-                onSave        = { triggerSave(); Toast.makeText(context, "Saved", Toast.LENGTH_SHORT).show() },
+                onSave        = { triggerSave(); Toast.makeText(context, "Сохранено", Toast.LENGTH_SHORT).show() },
                 onColorPicker = { showColorPicker = true },
                 onFindReplace = { showFindReplace = !showFindReplace; showOutline = false },
                 onOutline     = { showOutline = !showOutline; showFindReplace = false },
@@ -375,7 +365,7 @@ fun NoteInfoScreen(
                     context.startActivity(android.content.Intent.createChooser(
                         android.content.Intent(android.content.Intent.ACTION_SEND).apply {
                             putExtra(android.content.Intent.EXTRA_TEXT, "$title\n\n${textValue.text}"); type = "text/plain"
-                        }, "Share Note"))
+                        }, "Поделиться заметкой"))
                 },
                 onSharePdf    = {
                     viewModel.note?.let { n ->
@@ -468,7 +458,7 @@ private fun NoteTopBar(
                         modifier = Modifier.fillMaxWidth().focusRequester(titleFocusRequester),
                         singleLine = true,
                         decorationBox = { inner ->
-                            if (title.isEmpty()) Text("Untitled Note",
+                            if (title.isEmpty()) Text("Без названия",
                                 style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp, fontWeight = FontWeight.Bold),
                                 color = Color.Gray.copy(alpha = 0.4f))
                             inner()
@@ -476,19 +466,19 @@ private fun NoteTopBar(
                     )
                 }
             },
-            navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } },
+            navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Назад") } },
             actions = {
-                IconButton(onClick = onOutline)     { Icon(Icons.Default.List,   "Outline", Modifier.size(22.dp)) }
-                IconButton(onClick = onFindReplace) { Icon(Icons.Default.Search, "Find",    Modifier.size(22.dp)) }
+                IconButton(onClick = onOutline)     { Icon(Icons.Default.List,   "Содержание", Modifier.size(22.dp)) }
+                IconButton(onClick = onFindReplace) { Icon(Icons.Default.Search, "Поиск",    Modifier.size(22.dp)) }
                 Box {
-                    IconButton(onClick = { showOverflow = true }) { Icon(Icons.Default.MoreVert, "More") }
+                    IconButton(onClick = { showOverflow = true }) { Icon(Icons.Default.MoreVert, "Еще") }
                     DropdownMenu(expanded = showOverflow, onDismissRequest = { showOverflow = false }) {
-                        MenuItem(text = "Color", icon = Icons.Default.Palette, onClick = { showOverflow = false; onColorPicker() })
-                        MenuItem(text = "Save", icon = Icons.Default.Done, onClick = { showOverflow = false; onSave() })
-                        MenuItem(text = "Share as Text", icon = Icons.Default.Share, onClick = { showOverflow = false; onShare() })
-                        MenuItem(text = "Share as PDF", icon = Icons.Default.PictureAsPdf, onClick = { showOverflow = false; onSharePdf() })
+                        MenuItem(text = "Цвет", icon = Icons.Default.Palette, onClick = { showOverflow = false; onColorPicker() })
+                        MenuItem(text = "Сохранить", icon = Icons.Default.Done, onClick = { showOverflow = false; onSave() })
+                        MenuItem(text = "Поделиться как текстом", icon = Icons.Default.Share, onClick = { showOverflow = false; onShare() })
+                        MenuItem(text = "Поделиться как PDF", icon = Icons.Default.PictureAsPdf, onClick = { showOverflow = false; onSharePdf() })
                         HorizontalDivider()
-                        MenuItem(text = "Statistics", icon = Icons.Outlined.Analytics, onClick = { showOverflow = false; onStats() })
+                        MenuItem(text = "Статистика", icon = Icons.Outlined.Analytics, onClick = { showOverflow = false; onStats() })
                     }
                 }
             },
@@ -594,7 +584,7 @@ private fun PaperEditor(
                     onTextLayout = onTextLayout,
                     visualTransformation = remember { NoteVisualTransformation() },
                     decorationBox = { inner ->
-                        if (textValue.text.isEmpty()) Text("Start writing…",
+                        if (textValue.text.isEmpty()) Text("Начните писать…",
                             style = TextStyle(fontSize = 16.sp, color = Color.Gray.copy(.35f), lineHeight = 24.sp))
                         inner()
                     }
@@ -650,8 +640,8 @@ private fun EnhancedFormattingToolbar(
     onFormat: (String, String) -> Unit,
     onAddImage: () -> Unit
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Text", "Structure", "Insert")
+    var selectedTab by remember { mutableStateOf(0) }
+    val tabs = listOf("Текст", "Структура", "Вставка")
 
     Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 4.dp) {
         Column {
@@ -671,15 +661,15 @@ private fun EnhancedFormattingToolbar(
                 }
             }
             Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 6.dp, vertical = 2.dp),
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState().apply { /* smooth */ }).padding(horizontal = 6.dp, vertical = 2.dp),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 when (selectedTab) {
                     0 -> {
-                        FmtBtn(Icons.Default.FormatBold,         "Bold",      isActive = fmtState.isBold)      { onFormat("**",   "**")   }
-                        FmtBtn(Icons.Default.FormatItalic,       "Italic",    isActive = fmtState.isItalic)    { onFormat("*",    "*")    }
-                        FmtBtn(Icons.Default.FormatUnderlined,   "Underline", isActive = fmtState.isUnderline) { onFormat("<u>",  "</u>") }
-                        FmtBtn(Icons.Default.FormatStrikethrough,"Strike",    isActive = fmtState.isStrikethrough) { onFormat("~~",   "~~")   }
+                        FmtBtn(Icons.Default.FormatBold,         "Жирный",      isActive = fmtState.isBold)      { onFormat("**",   "**")   }
+                        FmtBtn(Icons.Default.FormatItalic,       "Курсив",    isActive = fmtState.isItalic)    { onFormat("*",    "*")    }
+                        FmtBtn(Icons.Default.FormatUnderlined,   "Подчеркнутый", isActive = fmtState.isUnderline) { onFormat("<u>",  "</u>") }
+                        FmtBtn(Icons.Default.FormatStrikethrough,"Зачеркнутый",    isActive = fmtState.isStrikethrough) { onFormat("~~",   "~~")   }
                         ToolbarDivider()
                         FmtBtn(null, "H1", labelText = "H1", labelSize = 14.sp) { onFormat("# ",   "") }
                         FmtBtn(null, "H2", labelText = "H2", labelSize = 12.sp) { onFormat("## ",  "") }
@@ -689,23 +679,23 @@ private fun EnhancedFormattingToolbar(
                         val isLeft = fmtState.alignment == TextAlign.Left
                         val isCenter = fmtState.alignment == TextAlign.Center
                         val isRight = fmtState.alignment == TextAlign.Right
-                        FmtBtn(Icons.Default.FormatAlignLeft,   "Left", isActive = isLeft)    { onFormat("",          "")           }
-                        FmtBtn(Icons.Default.FormatAlignCenter, "Center", isActive = isCenter)  { onFormat("<center>",   "</center>")  }
-                        FmtBtn(Icons.Default.FormatAlignRight,  "Right", isActive = isRight)   { onFormat("<right>",    "</right>")   }
+                        FmtBtn(Icons.Default.FormatAlignLeft,   "По левому краю", isActive = isLeft)    { onFormat("",          "")           }
+                        FmtBtn(Icons.Default.FormatAlignCenter, "По центру", isActive = isCenter)  { onFormat("<center>",   "</center>")  }
+                        FmtBtn(Icons.Default.FormatAlignRight,  "По правому краю", isActive = isRight)   { onFormat("<right>",    "</right>")   }
                         ToolbarDivider()
-                        FmtBtn(Icons.AutoMirrored.Filled.FormatListBulleted, "Bullet", isActive = fmtState.isBullet)   { onFormat("* ",  "") }
-                        FmtBtn(Icons.Default.FormatListNumbered,             "Numbered", isActive = fmtState.isOrdered) { onFormat("1. ", "") }
-                        FmtBtn(Icons.Default.HorizontalRule,                 "Divider")  { onFormat("\n---\n", "") }
+                        FmtBtn(Icons.AutoMirrored.Filled.FormatListBulleted, "Маркеры", isActive = fmtState.isBullet)   { onFormat("* ",  "") }
+                        FmtBtn(Icons.Default.FormatListNumbered,             "Нумерация", isActive = fmtState.isOrdered) { onFormat("1. ", "") }
+                        FmtBtn(Icons.Default.HorizontalRule,                 "Разделитель")  { onFormat("\n---\n", "") }
                         ToolbarDivider()
-                        FmtBtn(Icons.Default.FormatQuote, "Quote") { onFormat("> ", "") }
-                        FmtBtn(Icons.Default.Code,        "Code", isActive = fmtState.isCode)  { onFormat("`",  "`") }
+                        FmtBtn(Icons.Default.FormatQuote, "Цитата") { onFormat("> ", "") }
+                        FmtBtn(Icons.Default.Code,        "Код", isActive = fmtState.isCode)  { onFormat("`",  "`") }
                     }
                     2 -> {
-                        FmtBtn(Icons.Default.Image,     "Image")    { onAddImage() }
-                        FmtBtn(Icons.Default.Link,      "Link")     { onFormat("[",       "](url)") }
-                        FmtBtn(Icons.Default.CheckBox,  "Checkbox") { onFormat("- [ ] ", "")        }
-                        FmtBtn(Icons.Default.TableChart,"Table") {
-                            onFormat("\n| Header 1 | Header 2 | Header 3 |\n| :------- | :------: | -------: |\n| Cell     |   Cell   |     Cell |\n| Cell     |   Cell   |     Cell |\n", "")
+                        FmtBtn(Icons.Default.Image,     "Изображение")    { onAddImage() }
+                        FmtBtn(Icons.Default.Link,      "Ссылка")     { onFormat("[",       "](url)") }
+                        FmtBtn(Icons.Default.CheckBox,  "Флажок") { onFormat("- [ ] ", "")        }
+                        FmtBtn(Icons.Default.TableChart,"Таблица") {
+                            onFormat("\n| Заголовок 1 | Заголовок 2 | Заголовок 3 |\n| :------- | :------: | -------: |\n| Ячейка     |   Ячейка   |     Ячейка |\n| Ячейка     |   Ячейка   |     Ячейка |\n", "")
                         }
                     }
                 }
@@ -755,21 +745,21 @@ private fun NoteStatusBar(
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
             Arrangement.SpaceBetween, Alignment.CenterVertically) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("$wordCount w",  style = MaterialTheme.typography.labelSmall, color = Color.Gray.copy(.75f), fontSize = 11.sp)
-                Text("$charCount ch", style = MaterialTheme.typography.labelSmall, color = Color.Gray.copy(.75f), fontSize = 11.sp)
+                Text("$wordCount сл.",  style = MaterialTheme.typography.labelSmall, color = Color.Gray.copy(.75f), fontSize = 11.sp)
+                Text("$charCount симв.", style = MaterialTheme.typography.labelSmall, color = Color.Gray.copy(.75f), fontSize = 11.sp)
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 AnimatedContent(targetState = isSaved, transitionSpec = { fadeIn(tween(200)) togetherWith fadeOut(tween(200)) }, label = "save") { saved ->
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         Icon(if (saved) Icons.Default.CheckCircle else Icons.Outlined.Edit, null,
                             Modifier.size(12.dp), tint = if (saved) Color(0xFF4CAF50) else accentColor.copy(.7f))
-                        Text(if (saved) "Saved" else "Editing", style = MaterialTheme.typography.labelSmall,
+                        Text(if (saved) "Сохранено" else "Редактирование", style = MaterialTheme.typography.labelSmall,
                             color = if (saved) Color(0xFF4CAF50) else accentColor.copy(.7f))
                     }
                 }
                 IconButton(onClick = onToggleToolbar, modifier = Modifier.size(28.dp)) {
                     Icon(if (formattingBarExpanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
-                        "Toggle", Modifier.size(16.dp), tint = Color.Gray)
+                        "Свернуть", Modifier.size(16.dp), tint = Color.Gray)
                 }
             }
         }
@@ -789,23 +779,23 @@ private fun FindReplacePanel(text: String, accentColor: Color, onReplace: (Strin
     Surface(color = MaterialTheme.colorScheme.surfaceVariant, shadowElevation = 2.dp) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
-                Text("Find & Replace", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
-                IconButton(onClick = onClose, Modifier.size(28.dp)) { Icon(Icons.Default.Close, "Close", Modifier.size(16.dp)) }
+                Text("Поиск и замена", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                IconButton(onClick = onClose, Modifier.size(28.dp)) { Icon(Icons.Default.Close, "Закрыть", Modifier.size(16.dp)) }
             }
-            OutlinedTextField(value = findText, onValueChange = { findText = it }, label = { Text("Find") },
+            OutlinedTextField(value = findText, onValueChange = { findText = it }, label = { Text("Найти") },
                 modifier = Modifier.fillMaxWidth(), singleLine = true,
                 trailingIcon = { if (findText.isNotEmpty()) Text("$matchCount", style = MaterialTheme.typography.labelSmall,
                     color = if (matchCount > 0) accentColor else Color.Gray, modifier = Modifier.padding(end = 8.dp)) },
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accentColor), textStyle = MaterialTheme.typography.bodySmall)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(value = replaceText, onValueChange = { replaceText = it }, label = { Text("Replace with") },
+                OutlinedTextField(value = replaceText, onValueChange = { replaceText = it }, label = { Text("Заменить на") },
                     modifier = Modifier.weight(1f), singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accentColor), textStyle = MaterialTheme.typography.bodySmall)
                 Button(onClick = { if (findText.isNotBlank()) onReplace(findText, replaceText) },
                     enabled = findText.isNotBlank() && matchCount > 0,
                     colors  = ButtonDefaults.buttonColors(containerColor = accentColor),
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)) {
-                    Text("Replace All", style = MaterialTheme.typography.labelSmall)
+                    Text("Заменить все", style = MaterialTheme.typography.labelSmall)
                 }
             }
         }
@@ -834,11 +824,11 @@ private fun OutlinePanel(text: String, accentColor: Color, onHeadingClick: (Int)
     Surface(color = MaterialTheme.colorScheme.surfaceVariant, shadowElevation = 2.dp) {
         Column(Modifier.padding(12.dp)) {
             Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
-                Text("Outline", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
-                IconButton(onClick = onClose, Modifier.size(28.dp)) { Icon(Icons.Default.Close, "Close", Modifier.size(16.dp)) }
+                Text("Содержание", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+                IconButton(onClick = onClose, Modifier.size(28.dp)) { Icon(Icons.Default.Close, "Закрыть", Modifier.size(16.dp)) }
             }
             if (headings.isEmpty()) {
-                Text("No headings. Use # H1, ## H2, ### H3.", style = MaterialTheme.typography.bodySmall,
+                Text("Нет заголовков. Используйте # H1, ## H2, ### H3.", style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray, modifier = Modifier.padding(vertical = 8.dp))
             } else {
                 headings.forEach { h ->
@@ -868,13 +858,21 @@ private fun NoteStatsDialog(title: String, wordCount: Int, charCount: Int, text:
     val lineCount  = text.lines().size
     val paraCount  = text.split(Regex("\n{2,}")).count { it.isNotBlank() }
     val avgWordLen = if (wordCount > 0) "%.1f".format(text.filter { it.isLetterOrDigit() }.length.toFloat() / wordCount) else "0"
-    val readTime   = if (wordCount < 200) "<1 min" else "${wordCount / 200} min"
+    val readTime   = if (wordCount < 200) "<1 мин" else {
+        val mins = wordCount / 200
+        val minsWord = when {
+            mins % 10 == 1 && mins % 100 != 11 -> "минута"
+            mins % 10 in 2..4 && mins % 100 !in 12..14 -> "минуты"
+            else -> "минут"
+        }
+        "$mins $minsWord"
+    }
     AlertDialog(onDismissRequest = onDismiss,
-        title = { Text("Note Statistics", fontWeight = FontWeight.SemiBold) },
+        title = { Text("Статистика заметки", fontWeight = FontWeight.SemiBold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                listOf("Words" to "$wordCount", "Characters" to "$charCount", "Lines" to "$lineCount",
-                    "Paragraphs" to "$paraCount", "Avg. word length" to "$avgWordLen ch", "Est. reading" to readTime
+                listOf("Слов" to "$wordCount", "Символов" to "$charCount", "Строк" to "$lineCount",
+                    "Абзацев" to "$paraCount", "Средняя длина слова" to "$avgWordLen симв.", "Время чтения" to readTime
                 ).forEach { (l, v) ->
                     Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
                         Text(l, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
@@ -883,21 +881,21 @@ private fun NoteStatsDialog(title: String, wordCount: Int, charCount: Int, text:
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Close") } }
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Закрыть") } }
     )
 }
 
 @Composable
 private fun NoteColorPickerDialog(selectedColor: Int, onColorSelected: (Int) -> Unit, onDismiss: () -> Unit) {
     AlertDialog(onDismissRequest = onDismiss,
-        title = { Text("Note Color", fontWeight = FontWeight.SemiBold) },
+        title = { Text("Цвет заметки", fontWeight = FontWeight.SemiBold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Choose a background color for this note", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                Text("Выберите фоновый цвет для этой заметки", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                 ColorPickerRow(selectedColor = selectedColor, onColorSelected = { onColorSelected(it); onDismiss() })
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Отмена") } }
     )
 }
 
@@ -974,7 +972,6 @@ class NoteVisualTransformation : VisualTransformation {
                 val regex = Regex("\\[img:(.*?)\\]")
                 regex.findAll(line).forEach { m ->
                     parseInlineSpans(line.substring(last, m.range.first))
-                    // Using a small font size for the placeholder allows the user to control spacing with newlines
                     withStyle(SpanStyle(fontSize = 20.sp, color = Color.Transparent, letterSpacing = 0.sp)) { append(m.value) }
                     last = m.range.last + 1
                 }
@@ -1056,7 +1053,6 @@ class NoteVisualTransformation : VisualTransformation {
                         withStyle(SpanStyle(color = Color.Transparent, fontSize = 0.1.sp)) { append("**") }
                         i = end + 2
                     } else {
-                        // Unclosed, but keep marker tiny to avoid layout jumps
                         i += 2
                     }
                 }
