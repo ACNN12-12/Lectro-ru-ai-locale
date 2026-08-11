@@ -125,7 +125,6 @@ fun PersonalDetailsScreen(onBack: () -> Unit, viewModel: PersonalDetailsViewMode
                 try {
                     context.contentResolver.takePersistableUriPermission(it, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 } catch (e: Exception) {}
-                // We'll show a dialog to name the file
                 tempFileUri = it
                 showAddFileDialog = true
             }
@@ -138,15 +137,15 @@ fun PersonalDetailsScreen(onBack: () -> Unit, viewModel: PersonalDetailsViewMode
                 title = { Text(stringResource(R.string.personal_details_files)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                     }
                 },
                 actions = {
                     IconButton(onClick = {
-                        Toast.makeText(context, "Saved", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Сохранено", Toast.LENGTH_SHORT).show()
                         onBack()
                     }) {
-                        Icon(Icons.Default.Done, contentDescription = "Save")
+                        Icon(Icons.Default.Done, contentDescription = "Сохранить")
                     }
                 }
             )
@@ -173,12 +172,12 @@ fun PersonalDetailsScreen(onBack: () -> Unit, viewModel: PersonalDetailsViewMode
                 if (viewModel.photoPath != null) {
                     AsyncImage(
                         model = viewModel.photoPath,
-                        contentDescription = "Profile Photo",
+                        contentDescription = "Фото профиля",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
                 } else {
-                    Icon(Icons.Default.AddAPhoto, contentDescription = "Add Photo", modifier = Modifier.size(40.dp))
+                    Icon(Icons.Default.AddAPhoto, contentDescription = "Добавить фото", modifier = Modifier.size(40.dp))
                 }
             }
 
@@ -227,7 +226,7 @@ fun PersonalDetailsScreen(onBack: () -> Unit, viewModel: PersonalDetailsViewMode
                 }
             }
 
-            // File List (Manual rendering since we are inside verticalScroll)
+            // File List
             if (viewModel.userFiles.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
@@ -242,7 +241,7 @@ fun PersonalDetailsScreen(onBack: () -> Unit, viewModel: PersonalDetailsViewMode
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            "No files uploaded yet.",
+                            "Файлы еще не загружены.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -274,9 +273,9 @@ fun PersonalDetailsScreen(onBack: () -> Unit, viewModel: PersonalDetailsViewMode
         var fileName by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { showAddFileDialog = false },
-            title = { Text("File Title") },
+            title = { Text("Название файла") },
             text = {
-                OutlinedTextField(value = fileName, onValueChange = { fileName = it }, label = { Text("Enter title (e.g. Admit Card)") })
+                OutlinedTextField(value = fileName, onValueChange = { fileName = it }, label = { Text("Введите название (например, Студенческий)") })
             },
             confirmButton = {
                 TextButton(onClick = {
@@ -285,10 +284,10 @@ fun PersonalDetailsScreen(onBack: () -> Unit, viewModel: PersonalDetailsViewMode
                         showAddFileDialog = false
                         tempFileUri = null
                     }
-                }) { Text("Add") }
+                }) { Text("Добавить") }
             },
             dismissButton = {
-                TextButton(onClick = { showAddFileDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showAddFileDialog = false }) { Text("Отмена") }
             }
         )
     }
@@ -313,7 +312,7 @@ fun FileItem(file: UserFile, onDelete: () -> Unit, onClick: () -> Unit) {
                 Text(text = file.title, style = MaterialTheme.typography.bodyLarge)
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete")
+                Icon(Icons.Default.Delete, contentDescription = "Удалить")
             }
         }
     }
