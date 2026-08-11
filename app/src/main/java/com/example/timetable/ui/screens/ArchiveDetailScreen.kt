@@ -52,10 +52,10 @@ fun ArchiveDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(archiveJson?.optString("archive_name") ?: "Archive Detail") },
+                title = { Text(archiveJson?.optString("archive_name") ?: "Детали архива") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                     }
                 }
             )
@@ -67,7 +67,7 @@ fun ArchiveDetailScreen(
             }
         } else {
             Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-                val tabs = listOf("Timetable", "Subjects", "Exams", "Assignments", "Notes", "Materials")
+                val tabs = listOf("Расписание", "Предметы", "Экзамены", "Задания", "Заметки", "Материалы")
                 ScrollableTabRow(
                     selectedTabIndex = selectedTab,
                     edgePadding = 16.dp,
@@ -100,9 +100,18 @@ fun ArchiveDetailScreen(
 fun ArchiveTimetable(json: JSONObject) {
     val timetable = json.optJSONArray("timetable")
     if (timetable == null || timetable.length() == 0) {
-        EmptyArchiveSection("No schedule archived")
+        EmptyArchiveSection("В архиве нет расписания")
     } else {
         val dayOrder = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+        val dayTranslation = mapOf(
+            "Monday" to "Понедельник",
+            "Tuesday" to "Вторник",
+            "Wednesday" to "Среда",
+            "Thursday" to "Четверг",
+            "Friday" to "Пятница",
+            "Saturday" to "Суббота",
+            "Sunday" to "Воскресенье"
+        )
         val groupedByDay = (0 until timetable.length())
             .map { timetable.getJSONObject(it) }
             .groupBy { it.optString("f") }
@@ -111,15 +120,15 @@ fun ArchiveTimetable(json: JSONObject) {
         LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             groupedByDay.forEach { (day, slots) ->
                 item {
-                    Text(day, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                    Text(dayTranslation[day] ?: day, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
                 items(slots) { slot ->
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Row(modifier = Modifier.padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(slot.optString("s"), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-                                Text("Teacher: ${slot.optString("t")}", style = MaterialTheme.typography.bodySmall)
-                                Text("Room: ${slot.optString("r")}", style = MaterialTheme.typography.bodySmall)
+                                Text("Преподаватель: ${slot.optString("t")}", style = MaterialTheme.typography.bodySmall)
+                                Text("Аудитория: ${slot.optString("r")}", style = MaterialTheme.typography.bodySmall)
                             }
                             Text("${slot.optString("ft")} - ${slot.optString("tt")}", style = MaterialTheme.typography.bodyMedium)
                         }
@@ -134,17 +143,17 @@ fun ArchiveTimetable(json: JSONObject) {
 fun ArchiveSubjects(json: JSONObject) {
     val subjects = json.optJSONArray("subjects")
     if (subjects == null || subjects.length() == 0) {
-        EmptyArchiveSection("No subjects archived")
+        EmptyArchiveSection("В архиве нет предметов")
     } else {
         LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items((0 until subjects.length()).map { subjects.getJSONObject(it) }) { sub ->
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(sub.optString("n"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        Text("Teacher: ${sub.optString("t")}", style = MaterialTheme.typography.bodyMedium)
-                        Text("Room: ${sub.optString("r")}", style = MaterialTheme.typography.bodySmall)
+                        Text("Преподаватель: ${sub.optString("t")}", style = MaterialTheme.typography.bodyMedium)
+                        Text("Аудитория: ${sub.optString("r")}", style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(8.dp))
-                        Text("Attended: ${sub.optInt("a")}, Missed: ${sub.optInt("m")}", style = MaterialTheme.typography.labelSmall)
+                        Text("Посещено: ${sub.optInt("a")}, Пропущено: ${sub.optInt("m")}", style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }
@@ -156,15 +165,15 @@ fun ArchiveSubjects(json: JSONObject) {
 fun ArchiveExams(json: JSONObject) {
     val exams = json.optJSONArray("exams")
     if (exams == null || exams.length() == 0) {
-        EmptyArchiveSection("No exams archived")
+        EmptyArchiveSection("В архиве нет экзаменов")
     } else {
         LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items((0 until exams.length()).map { exams.getJSONObject(it) }) { e ->
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(e.optString("s"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        Text("Date: ${e.optString("d")} • Time: ${e.optString("tm")}", style = MaterialTheme.typography.bodyMedium)
-                        Text("Room: ${e.optString("r")}", style = MaterialTheme.typography.bodySmall)
+                        Text("Дата: ${e.optString("d")} • Время: ${e.optString("tm")}", style = MaterialTheme.typography.bodyMedium)
+                        Text("Аудитория: ${e.optString("r")}", style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -176,15 +185,15 @@ fun ArchiveExams(json: JSONObject) {
 fun ArchiveAssignments(json: JSONObject) {
     val homeworks = json.optJSONArray("homeworks")
     if (homeworks == null || homeworks.length() == 0) {
-        EmptyArchiveSection("No assignments archived")
+        EmptyArchiveSection("В архиве нет заданий")
     } else {
         LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items((0 until homeworks.length()).map { homeworks.getJSONObject(it) }) { h ->
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(h.optString("t"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        Text("Subject: ${h.optString("s")}", style = MaterialTheme.typography.bodyMedium)
-                        Text("Due: ${h.optString("dt")}", style = MaterialTheme.typography.bodySmall)
+                        Text("Предмет: ${h.optString("s")}", style = MaterialTheme.typography.bodyMedium)
+                        Text("Срок сдачи: ${h.optString("dt")}", style = MaterialTheme.typography.bodySmall)
                         if (h.optString("d").isNotEmpty()) Text(h.optString("d"), style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp))
                     }
                 }
@@ -197,7 +206,7 @@ fun ArchiveAssignments(json: JSONObject) {
 fun ArchiveNotes(json: JSONObject) {
     val notes = json.optJSONArray("notes")
     if (notes == null || notes.length() == 0) {
-        EmptyArchiveSection("No notes archived")
+        EmptyArchiveSection("В архиве нет заметок")
     } else {
         LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items((0 until notes.length()).map { notes.getJSONObject(it) }) { n ->
@@ -222,7 +231,7 @@ fun ArchiveNotes(json: JSONObject) {
                             )
                             Icon(
                                 if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                contentDescription = if (expanded) "Collapse" else "Expand"
+                                contentDescription = if (expanded) "Свернуть" else "Развернуть"
                             )
                         }
                         
@@ -252,7 +261,7 @@ fun ArchiveMaterials(json: JSONObject) {
     val context = LocalContext.current
     val materials = json.optJSONArray("materials")
     if (materials == null || materials.length() == 0) {
-        EmptyArchiveSection("No materials archived")
+        EmptyArchiveSection("В архиве нет материалов")
     } else {
         val existingMaterials = remember(materials) {
             (0 until materials.length()).map { materials.getJSONObject(it) }.filter { mat ->
@@ -278,7 +287,7 @@ fun ArchiveMaterials(json: JSONObject) {
         }
 
         if (existingMaterials.isEmpty()) {
-            EmptyArchiveSection("Archived files are no longer on this device")
+            EmptyArchiveSection("Архивные файлы больше не найдены на этом устройстве")
         } else {
             LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(existingMaterials) { mat ->
