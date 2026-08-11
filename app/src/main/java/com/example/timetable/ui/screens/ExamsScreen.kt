@@ -109,10 +109,10 @@ class ExamViewModel(application: Application) : AndroidViewModel(application) {
 fun ExamsScreen(onBack: () -> Unit, viewModel: ExamViewModel = viewModel()) {
     var showAddDialog by remember { mutableStateOf(false) }
     var examToDelete by remember { mutableStateOf<Exam?>(null) }
-    var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Upcoming", "Completed")
+    var selectedTab by remember { mutableStateOf(0) }
+    val tabs = listOf("Предстоящие", "Завершенные")
 
-    var tick by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    var tick by remember { mutableStateOf(System.currentTimeMillis()) }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -156,7 +156,7 @@ fun ExamsScreen(onBack: () -> Unit, viewModel: ExamViewModel = viewModel()) {
                     title = { Text(stringResource(id = R.string.exams)) },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                         }
                     }
                 )
@@ -173,7 +173,7 @@ fun ExamsScreen(onBack: () -> Unit, viewModel: ExamViewModel = viewModel()) {
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
+                Icon(Icons.Default.Add, contentDescription = "Добавить")
             }
         }
     ) { padding ->
@@ -193,13 +193,13 @@ fun ExamsScreen(onBack: () -> Unit, viewModel: ExamViewModel = viewModel()) {
                     )
                     Spacer(Modifier.height(16.dp))
                     Text(
-                        if (selectedTab == 0) "No upcoming exams!" else "No completed exams yet.",
+                        if (selectedTab == 0) "Нет предстоящих экзаменов!" else "Завершенных экзаменов пока нет.",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     if (selectedTab == 0) {
                         Text(
-                            "Tap + to add an exam.",
+                            "Нажмите +, чтобы добавить экзамен.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
@@ -236,18 +236,18 @@ fun ExamsScreen(onBack: () -> Unit, viewModel: ExamViewModel = viewModel()) {
     examToDelete?.let { exam ->
         AlertDialog(
             onDismissRequest = { examToDelete = null },
-            title = { Text("Delete Exam") },
-            text = { Text("Are you sure you want to delete the '${exam.subject}' exam?") },
+            title = { Text("Удалить экзамен") },
+            text = { Text("Вы уверены, что хотите удалить экзамен по предмету '${exam.subject}'?") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteExam(exam)
                     examToDelete = null
                 }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
-                    Text("Delete")
+                    Text("Удалить")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { examToDelete = null }) { Text("Cancel") }
+                TextButton(onClick = { examToDelete = null }) { Text("Отмена") }
             }
         )
     }
@@ -267,7 +267,7 @@ fun AddExamDialog(
     var room by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
     var time by remember { mutableStateOf("") }
-    var color by remember { mutableIntStateOf(0) }
+    var color by remember { mutableStateOf(0) }
 
     var subjectExpanded by remember { mutableStateOf(false) }
     var teacherExpanded by remember { mutableStateOf(false) }
@@ -417,7 +417,7 @@ fun ExamItem(exam: Exam, onDelete: () -> Unit, countdownText: String?) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = exam.subject, style = MaterialTheme.typography.titleLarge)
-                val dateTimeText = if (exam.time.isNullOrBlank()) exam.date else "${exam.date} at ${TimeUtils.formatTo12Hour(exam.time)}"
+                val dateTimeText = if (exam.time.isNullOrBlank()) exam.date else "${exam.date} в ${TimeUtils.formatTo12Hour(exam.time)}"
                 Text(text = dateTimeText, style = MaterialTheme.typography.bodyMedium)
                 
                 if (!countdownText.isNullOrBlank()) {
@@ -431,11 +431,11 @@ fun ExamItem(exam: Exam, onDelete: () -> Unit, countdownText: String?) {
                 }
                 
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Room: ${exam.room}", style = MaterialTheme.typography.bodySmall)
-                Text(text = "Teacher: ${exam.teacher}", style = MaterialTheme.typography.bodySmall)
+                Text(text = "Аудитория: ${exam.room}", style = MaterialTheme.typography.bodySmall)
+                Text(text = "Преподаватель: ${exam.teacher}", style = MaterialTheme.typography.bodySmall)
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete")
+                Icon(Icons.Default.Delete, contentDescription = "Удалить")
             }
         }
     }
@@ -456,7 +456,6 @@ private fun getExamCountdown(exam: Exam): String? {
                 set(Calendar.MINUTE, parts[1].toInt())
             }
         } else {
-            // End of day if no time specified, but for countdown "Today" we check date
             set(Calendar.HOUR_OF_DAY, 23)
             set(Calendar.MINUTE, 59)
         }
@@ -480,8 +479,15 @@ private fun getExamCountdown(exam: Exam): String? {
         }
         val dayDiff = ((examDay.timeInMillis - today.timeInMillis) / (1000 * 60 * 60 * 24)).toInt()
         return when {
-            dayDiff == 0 -> "Today"
-            dayDiff > 0 -> "$dayDiff days"
+            dayDiff == 0 -> "Сегодня"
+            dayDiff > 0 -> {
+                val daysWord = when {
+                    dayDiff % 10 == 1 && dayDiff % 100 != 11 -> "день"
+                    dayDiff % 10 in 2..4 && dayDiff % 100 !in 12..14 -> "дня"
+                    else -> "дней"
+                }
+                "Через $dayDiff $daysWord"
+            }
             else -> null
         }
     } else {
@@ -493,13 +499,21 @@ private fun getExamCountdown(exam: Exam): String? {
         val diffDays = diffMillis / (1000 * 60 * 60 * 24)
 
         return when {
-            diffMinutes < 30 -> "<30min"
-            diffMinutes < 60 -> "<1hr"
-            diffHours < 24 -> "${diffHours}hr"
+            diffMinutes < 30 -> "<30 мин"
+            diffMinutes < 60 -> "<1 ч"
+            diffHours < 24 -> {
+                val hoursWord = when {
+                    diffHours % 10 == 1L && diffHours % 100 != 11L -> "час"
+                    diffHours % 10 in 2..4 && diffHours % 100 !in 12..14 -> "часа"
+                    else -> "часов"
+                }
+                "Через $diffHours $hoursWord"
+            }
             else -> {
                 val remainingHours = diffHours % 24
-                if (remainingHours > 0) "$diffDays days $remainingHours hr" else "$diffDays days"
-            }
-        }
-    }
-}
+                val daysWord = when {
+                    diffDays % 10 == 1L && diffDays % 100 != 11L -> "день"
+                    diffDays % 10 in 2..4 && diffDays % 100 !in 12..14 -> "дня"
+                    else -> "дней"
+                }
+                if (remainingHour
