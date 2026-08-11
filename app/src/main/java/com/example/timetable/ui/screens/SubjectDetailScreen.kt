@@ -91,10 +91,6 @@ class SubjectDetailViewModel(application: Application) : AndroidViewModel(applic
     }
 
     fun getAttendanceStatus(weekId: Int): String? {
-        // This one is called during composition in the original code, 
-        // which is BAD. But let's see where it's used.
-        // It's used in todaySlots.forEach { slot -> val status = viewModel.getAttendanceStatus(slot.id) ... }
-        // For now, let's keep it as is but it should ideally be part of the state.
         val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         return db.getAttendanceStatus(weekId, date)
     }
@@ -226,10 +222,10 @@ fun SubjectDetailScreen(
             try {
                 context.contentResolver.openOutputStream(it)?.use { os ->
                     ScheduleExporter.exportSubject(context, viewModel.subject?.name ?: "", os)
-                    android.widget.Toast.makeText(context, "Subject schedule exported", android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(context, "Расписание предмета экспортировано", android.widget.Toast.LENGTH_SHORT).show()
                 }
             } catch (e: Exception) {
-                android.widget.Toast.makeText(context, "Export failed: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                android.widget.Toast.makeText(context, "Ошибка экспорта: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -240,9 +236,9 @@ fun SubjectDetailScreen(
                 setDataAndType(Uri.parse(material.path), material.type)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            context.startActivity(Intent.createChooser(intent, "Open with"))
+            context.startActivity(Intent.createChooser(intent, "Открыть с помощью"))
         } catch (e: Exception) {
-            android.widget.Toast.makeText(context, "No app found to open this file", android.widget.Toast.LENGTH_SHORT).show()
+            android.widget.Toast.makeText(context, "Не найдено приложение для открытия этого файла", android.widget.Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -290,20 +286,20 @@ fun SubjectDetailScreen(
                     title = { Text(subject.name) },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                         }
                     },
                     actions = {
                         IconButton(onClick = { exportLauncher.launch("${subject.name}.lec") }) {
-                            Icon(Icons.Default.Share, contentDescription = "Share Schedule")
+                            Icon(Icons.Default.Share, contentDescription = "Поделиться расписанием")
                         }
                         IconButton(onClick = { 
                             PdfGenerator.generateAndShareSubjectNotes(context, subject.name, viewModel.notes)
                         }) {
-                            Icon(Icons.Default.PictureAsPdf, contentDescription = "Share Notes as PDF")
+                            Icon(Icons.Default.PictureAsPdf, contentDescription = "Поделиться заметками как PDF")
                         }
                         IconButton(onClick = { showEditSubjectDialog = true }) {
-                            Icon(Icons.Default.Edit, contentDescription = "Edit")
+                            Icon(Icons.Default.Edit, contentDescription = "Изменить")
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -317,11 +313,11 @@ fun SubjectDetailScreen(
                         onClick = { filePickerLauncher.launch(arrayOf("*/*")) },
                         containerColor = MaterialTheme.colorScheme.secondaryContainer
                     ) {
-                        Icon(Icons.Default.UploadFile, contentDescription = "Upload Materials")
+                        Icon(Icons.Default.UploadFile, contentDescription = "Загрузить материалы")
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     FloatingActionButton(onClick = { showAddNoteDialog = true }) {
-                        Icon(Icons.Default.NoteAdd, contentDescription = "Add Note")
+                        Icon(Icons.Default.NoteAdd, contentDescription = "Добавить заметку")
                     }
                 }
             }
@@ -335,16 +331,16 @@ fun SubjectDetailScreen(
                 contentPadding = PaddingValues(vertical = 16.dp)
             ) {
                 item {
-                    Text(text = "Details", style = MaterialTheme.typography.titleMedium)
-                    Text(text = "Teacher: ${subject.teacher}", style = MaterialTheme.typography.bodyLarge)
-                    Text(text = "Room: ${subject.room}", style = MaterialTheme.typography.bodyLarge)
+                    Text(text = "Детали", style = MaterialTheme.typography.titleMedium)
+                    Text(text = "Преподаватель: ${subject.teacher}", style = MaterialTheme.typography.bodyLarge)
+                    Text(text = "Аудитория: ${subject.room}", style = MaterialTheme.typography.bodyLarge)
                     
                     val total = subject.attended + subject.missed
                     val percentage = if (total > 0) (subject.attended.toFloat() / total * 100).toInt() else 0
                     val color = getAttendanceColor(percentage, minAttendance)
                     
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text(text = "Attendance", style = MaterialTheme.typography.titleMedium)
+                    Text(text = "Посещаемость", style = MaterialTheme.typography.titleMedium)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -358,7 +354,7 @@ fun SubjectDetailScreen(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "Present: ${subject.attended}, Absent: ${subject.missed}, Total: $total",
+                                text = "Посещено: ${subject.attended}, Пропущено: ${subject.missed}, Всего: $total",
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
@@ -372,14 +368,14 @@ fun SubjectDetailScreen(
                     }
                     if (subject.skipped > 0) {
                         Text(
-                            text = "Lectures didn't happen: ${subject.skipped}",
+                            text = "Занятий отменено: ${subject.skipped}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Text(text = "Today's Status", style = MaterialTheme.typography.titleMedium)
+                    Text(text = "Статус на сегодня", style = MaterialTheme.typography.titleMedium)
                     val currentDay = when (Calendar.getInstance().get(Calendar.DAY_OF_WEEK)) {
                         Calendar.MONDAY -> "Monday"
                         Calendar.TUESDAY -> "Tuesday"
@@ -393,7 +389,7 @@ fun SubjectDetailScreen(
                     val todaySlots = viewModel.slots.filter { it.fragment == currentDay }
                     
                     if (todaySlots.isEmpty()) {
-                        Text("No classes scheduled for today.", style = MaterialTheme.typography.bodyMedium)
+                        Text("На сегодня занятий нет.", style = MaterialTheme.typography.bodyMedium)
                     } else {
                         todaySlots.forEach { slot ->
                             val status = viewModel.getAttendanceStatus(slot.id)
@@ -413,8 +409,13 @@ fun SubjectDetailScreen(
                                             fontWeight = FontWeight.Bold
                                         )
                                         if (status != null) {
+                                            val statusTranslation = mapOf(
+                                                "attended" to "Присутствовал",
+                                                "missed" to "Отсутствовал",
+                                                "skipped" to "Отменено"
+                                            )
                                             Text(
-                                                text = status.replaceFirstChar { it.uppercase() },
+                                                text = statusTranslation[status] ?: status.replaceFirstChar { it.uppercase() },
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.primary
                                             )
@@ -425,13 +426,13 @@ fun SubjectDetailScreen(
                                         modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                                     ) {
-                                        AttendanceButton("Present", status == "attended", Modifier.weight(1f)) {
+                                        AttendanceButton("Присутствовал", status == "attended", Modifier.weight(1f)) {
                                             viewModel.updateAttendance(slot.id, "attended")
                                         }
-                                        AttendanceButton("Absent", status == "missed", Modifier.weight(1f)) {
+                                        AttendanceButton("Отсутствовал", status == "missed", Modifier.weight(1f)) {
                                             viewModel.updateAttendance(slot.id, "missed")
                                         }
-                                        AttendanceButton("Cancelled", status == "skipped", Modifier.weight(1f)) {
+                                        AttendanceButton("Отменено", status == "skipped", Modifier.weight(1f)) {
                                             viewModel.updateAttendance(slot.id, "skipped")
                                         }
                                     }
@@ -443,7 +444,7 @@ fun SubjectDetailScreen(
                 }
 
                 if (viewModel.notes.isNotEmpty()) {
-                    item { Text(text = "Notes", style = MaterialTheme.typography.titleMedium) }
+                    item { Text(text = "Заметки", style = MaterialTheme.typography.titleMedium) }
                     itemsIndexed(viewModel.notes) { index, note ->
                         Box {
                             var showMenu by remember { mutableStateOf(false) }
@@ -455,12 +456,12 @@ fun SubjectDetailScreen(
                             )
                             DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
                                 DropdownMenuItem(
-                                    text = { Text("Move Up") },
+                                    text = { Text("Переместить вверх") },
                                     onClick = { viewModel.moveNote(index, true); showMenu = false },
                                     enabled = index > 0
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Move Down") },
+                                    text = { Text("Переместить вниз") },
                                     onClick = { viewModel.moveNote(index, false); showMenu = false },
                                     enabled = index < viewModel.notes.size - 1
                                 )
@@ -472,7 +473,7 @@ fun SubjectDetailScreen(
                 if (viewModel.materials.isNotEmpty()) {
                     item { 
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(text = "Materials", style = MaterialTheme.typography.titleMedium) 
+                        Text(text = "Материалы", style = MaterialTheme.typography.titleMedium) 
                     }
                     itemsIndexed(viewModel.materials) { index, material ->
                         Box {
@@ -486,12 +487,12 @@ fun SubjectDetailScreen(
                             )
                             DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
                                 DropdownMenuItem(
-                                    text = { Text("Move Up") },
+                                    text = { Text("Переместить вверх") },
                                     onClick = { viewModel.moveMaterial(index, true); showMenu = false },
                                     enabled = index > 0
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Move Down") },
+                                    text = { Text("Переместить вниз") },
                                     onClick = { viewModel.moveMaterial(index, false); showMenu = false },
                                     enabled = index < viewModel.materials.size - 1
                                 )
@@ -516,18 +517,18 @@ fun SubjectDetailScreen(
         var newName by remember { mutableStateOf(material.name) }
         AlertDialog(
             onDismissRequest = { materialToEdit = null },
-            title = { Text("Edit File Name") },
+            title = { Text("Изменить название файла") },
             text = {
-                OutlinedTextField(value = newName, onValueChange = { newName = it }, label = { Text("File Name") })
+                OutlinedTextField(value = newName, onValueChange = { newName = it }, label = { Text("Название файла") })
             },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.updateMaterialName(material.id, newName)
                     materialToEdit = null
-                }) { Text("Save") }
+                }) { Text("Сохранить") }
             },
             dismissButton = {
-                TextButton(onClick = { materialToEdit = null }) { Text("Cancel") }
+                TextButton(onClick = { materialToEdit = null }) { Text("Отмена") }
             }
         )
     }
@@ -535,18 +536,18 @@ fun SubjectDetailScreen(
     noteToDelete?.let { note ->
         AlertDialog(
             onDismissRequest = { noteToDelete = null },
-            title = { Text("Delete Note") },
-            text = { Text("Are you sure you want to delete this note? This action cannot be undone.") },
+            title = { Text("Удалить заметку") },
+            text = { Text("Вы уверены, что хотите удалить эту заметку? Это действие нельзя отменить.") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteNote(note.id)
                     noteToDelete = null
                 }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
-                    Text("Delete")
+                    Text("Удалить")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { noteToDelete = null }) { Text("Cancel") }
+                TextButton(onClick = { noteToDelete = null }) { Text("Отмена") }
             }
         )
     }
@@ -554,18 +555,18 @@ fun SubjectDetailScreen(
     materialToDelete?.let { material ->
         AlertDialog(
             onDismissRequest = { materialToDelete = null },
-            title = { Text("Delete Material") },
-            text = { Text("Are you sure you want to delete '${material.name}'?") },
+            title = { Text("Удалить материал") },
+            text = { Text("Вы уверены, что хотите удалить '${material.name}'?") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteMaterial(material.id)
                     materialToDelete = null
                 }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
-                    Text("Delete")
+                    Text("Удалить")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { materialToDelete = null }) { Text("Cancel") }
+                TextButton(onClick = { materialToDelete = null }) { Text("Отмена") }
             }
         )
     }
@@ -585,18 +586,18 @@ fun SubjectDetailScreen(
 @Composable
 fun SimpleAddNoteDialog(onDismiss: () -> Unit, onSave: (String, Int) -> Unit) {
     var title by remember { mutableStateOf("") }
-    var color by remember { mutableIntStateOf(0) }
+    var color by remember { mutableStateOf(0) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add Note") },
+        title = { Text("Добавить заметку") },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Title") }, modifier = Modifier.fillMaxWidth())
-                Text("Note Color")
+                OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Заголовок") }, modifier = Modifier.fillMaxWidth())
+                Text("Цвет заметки")
                 ColorPickerRow(selectedColor = color, onColorSelected = { color = it })
             }
         },
@@ -606,10 +607,10 @@ fun SimpleAddNoteDialog(onDismiss: () -> Unit, onSave: (String, Int) -> Unit) {
                     onSave(title, color)
                     onDismiss()
                 }
-            }) { Text("Save") }
+            }) { Text("Сохранить") }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text("Отмена") }
         }
     )
 }
@@ -641,13 +642,13 @@ fun MaterialItem(
             Spacer(modifier = Modifier.width(8.dp))
             Text(text = material.name ?: "", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
             IconButton(onClick = onReorder) {
-                Icon(Icons.Default.SwapVert, contentDescription = "Reorder")
+                Icon(Icons.Default.SwapVert, contentDescription = "Порядок")
             }
             IconButton(onClick = onEditName) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit Name")
+                Icon(Icons.Default.Edit, contentDescription = "Изменить название")
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete")
+                Icon(Icons.Default.Delete, contentDescription = "Удалить")
             }
         }
     }
