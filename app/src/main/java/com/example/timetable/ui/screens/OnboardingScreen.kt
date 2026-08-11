@@ -33,18 +33,18 @@ data class OnboardingPage(
 fun OnboardingScreen(onFinished: () -> Unit) {
     val pages = listOf(
         OnboardingPage(
-            title = "Plan Your Schedule",
-            description = "Easily add and manage your weekly classes. Set custom colors and rooms for each subject.",
+            title = "Планируйте расписание",
+            description = "Легко добавляйте и управляйте своими еженедельными занятиями. Настраивайте цвета и аудитории для каждого предмета.",
             icon = Icons.Default.DateRange
         ),
         OnboardingPage(
-            title = "Track Attendance",
-            description = "Keep an eye on your attendance goals. Get smart alerts on when you can skip or when you must attend.",
+            title = "Следите за посещаемостью",
+            description = "Следите за своими целями по посещаемости. Получайте умные уведомления о том, когда можно пропустить пару, а когда нужно прийти.",
             icon = Icons.AutoMirrored.Filled.FactCheck
         ),
         OnboardingPage(
-            title = "Stay Organized",
-            description = "Keep your notes, assignments, and exams all in one place. Never miss a deadline again.",
+            title = "Оставайтесь организованным",
+            description = "Держите свои заметки, задания и экзамены в одном месте. Никогда больше не пропускайте сроки сдачи.",
             icon = Icons.AutoMirrored.Filled.Assignment
         )
     )
@@ -99,7 +99,7 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                         onClick = onFinished,
                         shape = MaterialTheme.shapes.medium
                     ) {
-                        Text("Get Started")
+                        Text("Начать")
                     }
                 } else {
                     IconButton(
@@ -110,7 +110,7 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                         },
                         colors = IconButtonDefaults.filledIconButtonColors()
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next")
+                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Далее")
                     }
                 }
             }
