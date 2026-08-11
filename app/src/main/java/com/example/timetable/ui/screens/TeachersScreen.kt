@@ -104,14 +104,14 @@ fun TeachersScreen(
                 title = { Text(stringResource(id = R.string.teachers)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                     }
                 }
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
+                Icon(Icons.Default.Add, contentDescription = "Добавить")
             }
         }
     ) { padding ->
@@ -131,12 +131,12 @@ fun TeachersScreen(
                     )
                     Spacer(Modifier.height(16.dp))
                     Text(
-                        "No teachers added yet.",
+                        "Преподаватели еще не добавлены.",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        "Tap + to add your first contact.",
+                        "Нажмите +, чтобы добавить первый контакт.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
@@ -160,16 +160,16 @@ fun TeachersScreen(
                             onClick = { showMenu = true },
                             modifier = Modifier.align(Alignment.CenterEnd).padding(end = 60.dp)
                         ) {
-                            Icon(Icons.Default.SwapVert, contentDescription = "Reorder")
+                            Icon(Icons.Default.SwapVert, contentDescription = "Порядок")
                         }
                         DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
                             DropdownMenuItem(
-                                text = { Text("Move Up") },
+                                text = { Text("Переместить вверх") },
                                 onClick = { viewModel.moveTeacher(index, true); showMenu = false },
                                 enabled = index > 0
                             )
                             DropdownMenuItem(
-                                text = { Text("Move Down") },
+                                text = { Text("Переместить вниз") },
                                 onClick = { viewModel.moveTeacher(index, false); showMenu = false },
                                 enabled = index < viewModel.teachers.size - 1
                             )
@@ -201,18 +201,18 @@ fun TeachersScreen(
     teacherToDelete?.let { teacher ->
         AlertDialog(
             onDismissRequest = { teacherToDelete = null },
-            title = { Text("Delete Teacher") },
-            text = { Text("Are you sure you want to delete '${teacher.name}' from your contacts?") },
+            title = { Text("Удалить преподавателя") },
+            text = { Text("Вы уверены, что хотите удалить преподавателя '${teacher.name}' из контактов?") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteTeacher(teacher)
                     teacherToDelete = null
                 }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
-                    Text("Delete")
+                    Text("Удалить")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { teacherToDelete = null }) { Text("Cancel") }
+                TextButton(onClick = { teacherToDelete = null }) { Text("Отмена") }
             }
         )
     }
@@ -324,12 +324,12 @@ fun TeacherItem(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Room, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = "Cabin: ${teacher.getCabinNumber()}", style = MaterialTheme.typography.bodySmall)
+                        Text(text = "Кабинет: ${teacher.getCabinNumber()}", style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete")
+                Icon(Icons.Default.Delete, contentDescription = "Удалить")
             }
         }
     }
