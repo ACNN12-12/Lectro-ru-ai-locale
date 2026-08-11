@@ -36,10 +36,10 @@ fun ArchivesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Archived Semesters") },
+                title = { Text("Архив семестров") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                     }
                 }
             )
@@ -50,7 +50,7 @@ fun ArchivesScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.History, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                     Spacer(Modifier.height(16.dp))
-                    Text("No archives found", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Архивы не найдены", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         } else {
@@ -73,7 +73,7 @@ fun ArchivesScreen(
                                 Text(sdf.format(Date(archive.date)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             IconButton(onClick = { archiveToDelete = archive }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Delete Archive", tint = MaterialTheme.colorScheme.error)
+                                Icon(Icons.Default.Delete, contentDescription = "Удалить архив", tint = MaterialTheme.colorScheme.error)
                             }
                         }
                     }
@@ -85,8 +85,8 @@ fun ArchivesScreen(
     archiveToDelete?.let { archive ->
         AlertDialog(
             onDismissRequest = { archiveToDelete = null },
-            title = { Text("Delete Archive") },
-            text = { Text("Are you sure you want to permanently delete '${archive.name}'?") },
+            title = { Text("Удалить архив") },
+            text = { Text("Вы уверены, что хотите навсегда удалить архив '${archive.name}'?") },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -95,10 +95,10 @@ fun ArchivesScreen(
                         archiveToDelete = null
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                ) { Text("Delete") }
+                ) { Text("Удалить") }
             },
             dismissButton = {
-                TextButton(onClick = { archiveToDelete = null }) { Text("Cancel") }
+                TextButton(onClick = { archiveToDelete = null }) { Text("Отмена") }
             }
         )
     }
