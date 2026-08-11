@@ -121,8 +121,8 @@ fun AssignmentsScreen(onBack: () -> Unit, viewModel: AssignmentsViewModel = view
     var showAddDialog by remember { mutableStateOf(false) }
     var assignmentToEdit by remember { mutableStateOf<Homework?>(null) }
     var assignmentToDelete by remember { mutableStateOf<Homework?>(null) }
-    var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Pending", "Overdue", "Completed")
+    var selectedTab by remember { mutableStateOf(0) }
+    val tabs = listOf("Активные", "Просроченные", "Выполненные")
 
     val currentDate = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
 
@@ -160,7 +160,7 @@ fun AssignmentsScreen(onBack: () -> Unit, viewModel: AssignmentsViewModel = view
                     title = { Text(stringResource(id = R.string.homeworks)) },
                     navigationIcon = {
                         IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                         }
                     }
                 )
@@ -177,7 +177,7 @@ fun AssignmentsScreen(onBack: () -> Unit, viewModel: AssignmentsViewModel = view
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
+                Icon(Icons.Default.Add, contentDescription = "Добавить")
             }
         }
     ) { padding ->
@@ -202,16 +202,16 @@ fun AssignmentsScreen(onBack: () -> Unit, viewModel: AssignmentsViewModel = view
                     Spacer(Modifier.height(16.dp))
                     Text(
                         when (selectedTab) {
-                            0 -> "No pending assignments!"
-                            1 -> "No overdue assignments!"
-                            else -> "No completed assignments yet."
+                            0 -> "Нет активных заданий!"
+                            1 -> "Нет просроченных заданий!"
+                            else -> "Выполненных заданий пока нет."
                         },
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     if (selectedTab == 0) {
                         Text(
-                            "Tap + to stay on top of your work.",
+                            "Нажмите +, чтобы добавить новое задание.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
@@ -259,18 +259,18 @@ fun AssignmentsScreen(onBack: () -> Unit, viewModel: AssignmentsViewModel = view
     assignmentToDelete?.let { assignment ->
         AlertDialog(
             onDismissRequest = { assignmentToDelete = null },
-            title = { Text("Delete Assignment") },
-            text = { Text("Are you sure you want to delete '${assignment.title}'?") },
+            title = { Text("Удалить задание") },
+            text = { Text("Вы уверены, что хотите удалить задание '${assignment.title}'?") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteAssignment(assignment)
                     assignmentToDelete = null
                 }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
-                    Text("Delete")
+                    Text("Удалить")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { assignmentToDelete = null }) { Text("Cancel") }
+                TextButton(onClick = { assignmentToDelete = null }) { Text("Отмена") }
             }
         )
     }
@@ -289,7 +289,7 @@ fun AddAssignmentDialog(
     var title by remember { mutableStateOf(initialAssignment.title ?: "") }
     var description by remember { mutableStateOf(initialAssignment.description ?: "") }
     var date by remember { mutableStateOf(initialAssignment.date ?: "") }
-    var color by remember { mutableIntStateOf(initialAssignment.color) }
+    var color by remember { mutableStateOf(initialAssignment.color) }
     var subjectExpanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
@@ -399,18 +399,18 @@ fun AssignmentItem(
                 if (!assignment.description.isNullOrBlank()) {
                     Text(text = assignment.description, style = MaterialTheme.typography.bodyMedium)
                 }
-                Text(text = "Deadline: ${assignment.date}", style = MaterialTheme.typography.bodySmall)
+                Text(text = "Срок сдачи: ${assignment.date}", style = MaterialTheme.typography.bodySmall)
             }
             Row {
                 IconButton(onClick = onToggleComplete) {
                     Icon(
                         imageVector = Icons.Default.Check, 
-                        contentDescription = "Mark Complete",
+                        contentDescription = "Отметить как выполненное",
                         tint = if (assignment.getCompleted() == 1) Color.Green else contentColor
                     )
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete")
+                    Icon(Icons.Default.Delete, contentDescription = "Удалить")
                 }
             }
         }
