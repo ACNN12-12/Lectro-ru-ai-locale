@@ -174,14 +174,14 @@ fun SettingsScreen(
             try {
                 context.contentResolver.openOutputStream(it)?.use { os ->
                     ScheduleExporter.exportSchedule(context, os)
-                    Toast.makeText(context, "Schedule exported as .lec file", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Расписание экспортировано в файл .lec", Toast.LENGTH_SHORT).show()
                     if (shouldClearAfterExport) {
                         viewModel.archiveSemester()
                         shouldClearAfterExport = false
                     }
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "Export failed: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "Ошибка экспорта: ${e.message}", Toast.LENGTH_LONG).show()
                 shouldClearAfterExport = false
             }
         } ?: run {
@@ -202,11 +202,11 @@ fun SettingsScreen(
                         showConflictDialog = conflicts
                     } else {
                         ScheduleExporter.importWeeks(context, weeks)
-                        Toast.makeText(context, "Schedule imported successfully", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Расписание успешно импортировано", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "Import failed: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "Ошибка импорта: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -217,11 +217,11 @@ fun SettingsScreen(
                 showConflictDialog = null
                 pendingImportWeeks = null
             },
-            title = { Text("Schedule Conflicts") },
+            title = { Text("Конфликты расписания") },
             text = {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = "The following classes in the file overlap with your current schedule. Choose which version to keep.",
+                        text = "Следующие занятия в файле накладываются на ваше текущее расписание. Выберите, какую версию сохранить.",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -235,9 +235,18 @@ fun SettingsScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         conflictsByDay.forEach { (day, dayConflicts) ->
+                            val dayTranslation = mapOf(
+                                "Monday" to "Понедельник",
+                                "Tuesday" to "Вторник",
+                                "Wednesday" to "Среда",
+                                "Thursday" to "Четверг",
+                                "Friday" to "Пятница",
+                                "Saturday" to "Суббота",
+                                "Sunday" to "Воскресенье"
+                            )
                             Column {
                                 Text(
-                                    text = day ?: "Unknown Day",
+                                    text = dayTranslation[day] ?: day ?: "Неизвестный день",
                                     style = MaterialTheme.typography.labelLarge,
                                     color = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.padding(bottom = 4.dp)
@@ -253,7 +262,7 @@ fun SettingsScreen(
                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                 Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.outline, CircleShape))
                                                 Spacer(modifier = Modifier.width(8.dp))
-                                                Text("Current: ${existing.subject}", style = MaterialTheme.typography.bodySmall)
+                                                Text("Текущее: ${existing.subject}", style = MaterialTheme.typography.bodySmall)
                                             }
                                             Text(
                                                 text = "${TimeUtils.formatTo12Hour(existing.fromTime)} - ${TimeUtils.formatTo12Hour(existing.toTime)}",
@@ -267,7 +276,7 @@ fun SettingsScreen(
                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                 Box(modifier = Modifier.size(8.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
                                                 Spacer(modifier = Modifier.width(8.dp))
-                                                Text("Importing: ${newW.subject}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                                                Text("Импорт: ${newW.subject}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
                                             }
                                             Text(
                                                 text = "${TimeUtils.formatTo12Hour(newW.fromTime)} - ${TimeUtils.formatTo12Hour(newW.toTime)}",
@@ -285,33 +294,31 @@ fun SettingsScreen(
             },
             confirmButton = {
                 Button(onClick = {
-                    // Keep New: Replace existing clashing slots
                     val db = DbHelper(context)
                     val existingToReplace: List<Week> = showConflictDialog!!.map { it.second }
                     existingToReplace.forEach { db.deleteWeekById(it) }
                     ScheduleExporter.importWeeks(context, pendingImportWeeks!!)
-                    Toast.makeText(context, "Imported new schedule (replaced clashing slots)", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Новое расписание импортировано (пересекающиеся занятия заменены)", Toast.LENGTH_SHORT).show()
                     showConflictDialog = null
                     pendingImportWeeks = null
                 }) {
-                    Text("Keep New")
+                    Text("Сохранить новое")
                 }
             },
             dismissButton = {
                 TextButton(onClick = {
-                    // Keep Existing: Import only non-clashing slots
                     val clashingNew: List<Week> = showConflictDialog!!.map { it.first }
                     val nonClashing = pendingImportWeeks!!.filter { it !in clashingNew }
                     if (nonClashing.isNotEmpty()) {
                         ScheduleExporter.importWeeks(context, nonClashing)
-                        Toast.makeText(context, "Imported non-clashing slots", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Импортированы только непересекающиеся занятия", Toast.LENGTH_SHORT).show()
                     } else {
-                        Toast.makeText(context, "All slots clashed, nothing imported", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Все занятия пересекаются, ничего не импортировано", Toast.LENGTH_SHORT).show()
                     }
                     showConflictDialog = null
                     pendingImportWeeks = null
                 }) {
-                    Text("Keep Existing")
+                    Text("Оставить текущее")
                 }
             }
         )
@@ -331,7 +338,7 @@ fun SettingsScreen(
                 title = { Text(stringResource(id = R.string.action_settings)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                     }
                 }
             )
@@ -345,7 +352,7 @@ fun SettingsScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            SettingsSection(title = "Appearance") {
+            SettingsSection(title = "Оформление") {
                 SettingsItem(
                     title = stringResource(R.string.sevendays_setting),
                     control = {
@@ -368,13 +375,13 @@ fun SettingsScreen(
 
             HorizontalDivider()
 
-            SettingsSection(title = "Configuration") {
+            SettingsSection(title = "Настройки") {
                 OutlinedTextField(
                     value = viewModel.schoolWebsite,
                     onValueChange = { viewModel.updateSchoolWebsite(it) },
                     label = { Text(stringResource(R.string.school_website_setting)) },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("https://example.edu") }
+                    placeholder = { Text("https://site-vuza.ru") }
                 )
                 Text(
                     text = stringResource(R.string.school_website_setting_summary),
@@ -386,7 +393,7 @@ fun SettingsScreen(
 
             HorizontalDivider()
 
-            SettingsSection(title = "Notifications") {
+            SettingsSection(title = "Уведомления") {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
@@ -395,7 +402,7 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         SettingsItem(
-                            title = "Enable Notifications",
+                            title = "Включить уведомления",
                             control = {
                                 Switch(
                                     checked = viewModel.notificationsEnabled,
@@ -434,7 +441,7 @@ fun SettingsScreen(
                                     ) {
                                         Column(modifier = Modifier.padding(12.dp)) {
                                             Text(
-                                                "Exact alarms permission is missing. Reminders might be delayed.",
+                                                "Отсутствует разрешение на точные будильники. Уведомления могут приходить с задержкой.",
                                                 style = MaterialTheme.typography.bodySmall
                                             )
                                             TextButton(
@@ -448,14 +455,14 @@ fun SettingsScreen(
                                                 },
                                                 contentPadding = PaddingValues(0.dp)
                                             ) {
-                                                Text("Grant Permission", style = MaterialTheme.typography.labelLarge)
+                                                Text("Предоставить разрешение", style = MaterialTheme.typography.labelLarge)
                                             }
                                         }
                                     }
                                 }
 
                                 SettingsItem(
-                                    title = "Schedule Reminder",
+                                    title = "Напоминание о парах",
                                     control = {
                                         Switch(
                                             checked = viewModel.scheduleReminder,
@@ -464,7 +471,7 @@ fun SettingsScreen(
                                     }
                                 )
                                 SettingsItem(
-                                    title = "Assignment Reminder",
+                                    title = "Напоминание о заданиях",
                                     control = {
                                         Switch(
                                             checked = viewModel.assignmentReminder,
@@ -473,7 +480,7 @@ fun SettingsScreen(
                                     }
                                 )
                                 SettingsItem(
-                                    title = "Exam Reminder",
+                                    title = "Напоминание об экзаменах",
                                     control = {
                                         Switch(
                                             checked = viewModel.examReminder,
@@ -482,7 +489,7 @@ fun SettingsScreen(
                                     }
                                 )
                                 SettingsItem(
-                                    title = "Attendance Alert",
+                                    title = "Предупреждения о посещаемости",
                                     control = {
                                         Switch(
                                             checked = viewModel.attendanceAlert,
@@ -498,7 +505,7 @@ fun SettingsScreen(
 
             HorizontalDivider()
 
-            SettingsSection(title = "Auto Silent") {
+            SettingsSection(title = "Авто-беззвучный режим") {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
@@ -507,7 +514,7 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         SettingsItem(
-                            title = "Auto silent during class",
+                            title = "Беззвучный режим во время пар",
                             control = {
                                 Switch(
                                     checked = viewModel.autoSilentEnabled,
@@ -517,7 +524,7 @@ fun SettingsScreen(
                                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !nm.isNotificationPolicyAccessGranted) {
                                                 val intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
                                                 context.startActivity(intent)
-                                                Toast.makeText(context, "Please grant Notification Policy Access to use this feature", Toast.LENGTH_LONG).show()
+                                                Toast.makeText(context, "Пожалуйста, предоставьте доступ к режиму 'Не беспокоить', чтобы использовать эту функцию", Toast.LENGTH_LONG).show()
                                                 return@Switch
                                             }
                                         }
@@ -537,7 +544,7 @@ fun SettingsScreen(
                                 verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
                                 SettingsItem(
-                                    title = "Media volume",
+                                    title = "Громкость медиа",
                                     control = {
                                         Switch(
                                             checked = viewModel.silentMediaVolume,
@@ -546,7 +553,7 @@ fun SettingsScreen(
                                     }
                                 )
                                 SettingsItem(
-                                    title = "Ring & notification volume",
+                                    title = "Громкость звонка и уведомлений",
                                     control = {
                                         Switch(
                                             checked = viewModel.silentRingNotificationVolume,
@@ -562,13 +569,13 @@ fun SettingsScreen(
 
             HorizontalDivider()
 
-            SettingsSection(title = "Backup & Restore") {
+            SettingsSection(title = "Резервное копирование") {
                 Column(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = "Import or export your schedule as a .lec file to share with others or keep a backup.",
+                        text = "Импортируйте или экспортируйте свое расписание в виде файла .lec, чтобы поделиться им или сохранить резервную копию.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -580,13 +587,13 @@ fun SettingsScreen(
                             onClick = { exportLauncher.launch("timetable.lec") },
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Export Schedule")
+                            Text("Экспорт расписания")
                         }
                         Button(
                             onClick = { importLauncher.launch(arrayOf("*/*")) },
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text("Import Schedule")
+                            Text("Импорт расписания")
                         }
                     }
                 }
@@ -594,16 +601,16 @@ fun SettingsScreen(
 
             HorizontalDivider()
 
-            SettingsSection(title = "Danger Zone") {
+            SettingsSection(title = "Опасная зона") {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     // Archive Semester
                     DangerCard(
-                        title = "Archive Current Semester",
-                        description = "Saves everything (schedule, subjects, notes, exams, assignments, attendance) to the app's history and starts a fresh semester.",
-                        buttonText = "Archive Semester",
+                        title = "Архивировать текущий семестр",
+                        description = "Сохраняет все текущие данные (расписание, предметы, заметки, экзамены, задания, посещаемость) в архив и начинает новый семестр с чистого листа.",
+                        buttonText = "Архивировать семестр",
                         onClick = { 
                             val sdf = SimpleDateFormat("MMM yyyy", Locale.getDefault())
-                            archiveName = "Semester ending ${sdf.format(Date())}"
+                            archiveName = "Семестр, завершенный в ${sdf.format(Date())}"
                             resetType = ResetType.ARCHIVE 
                         }
                     )
@@ -616,14 +623,14 @@ fun SettingsScreen(
                         ) {
                             Icon(Icons.Default.History, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
-                            Text("View Archived Semesters (${archives.size})")
+                            Text("Посмотреть архивы семестров (${archives.size})")
                         }
                     }
 
                     // Reset All Data
                     DangerCard(
                         title = stringResource(R.string.reset_data),
-                        description = "Wipes everything (schedule, subjects, homeworks, notes, attendance) but keeps your personal details.",
+                        description = "Удаляет все данные приложения (расписание, предметы, домашние работы, заметки, историю посещаемости), но сохраняет ваши личные данные профиля.",
                         buttonText = stringResource(R.string.reset_data),
                         onClick = { resetType = ResetType.ALL }
                     )
@@ -634,11 +641,11 @@ fun SettingsScreen(
 
     resetType?.let { type ->
         val title = when (type) {
-            ResetType.ARCHIVE -> "Archive Current Semester?"
+            ResetType.ARCHIVE -> "Архивировать текущий семестр?"
             ResetType.ALL -> stringResource(R.string.reset_data)
         }
         val message = when (type) {
-            ResetType.ARCHIVE -> "This will archive ALL your current data into the app's history. This action will clear your current timetable and subjects."
+            ResetType.ARCHIVE -> "Это сохранит ВСЕ ваши текущие данные в архив истории приложения. Данное действие очистит ваше текущее расписание и предметы."
             ResetType.ALL -> stringResource(R.string.reset_warning)
         }
 
@@ -653,7 +660,7 @@ fun SettingsScreen(
                         OutlinedTextField(
                             value = archiveName,
                             onValueChange = { archiveName = it },
-                            label = { Text("Archive Name (e.g. Fall 2023)") },
+                            label = { Text("Название архива (например, Осенний семестр 2026)") },
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -665,14 +672,14 @@ fun SettingsScreen(
                         when (type) {
                             ResetType.ARCHIVE -> {
                                 if (archiveName.isBlank()) {
-                                    Toast.makeText(context, "Please enter a name for the archive", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Пожалуйста, введите название архива", Toast.LENGTH_SHORT).show()
                                     return@TextButton
                                 }
                                 val success = SemesterArchiveManager.archiveCurrentSemester(context, archiveName)
                                 if (success) {
-                                    Toast.makeText(context, "Semester archived successfully!", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(context, "Семестр успешно архивирован!", Toast.LENGTH_LONG).show()
                                 } else {
-                                    Toast.makeText(context, "Failed to archive semester", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Не удалось архивировать семестр", Toast.LENGTH_SHORT).show()
                                 }
                             }
                             ResetType.ALL -> viewModel.resetData()
