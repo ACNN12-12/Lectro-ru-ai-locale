@@ -44,7 +44,7 @@ fun AttendanceScreen(
         mutableStateOf(sharedPref.getBoolean(AppConstants.KEY_ATTENDANCE_SETTING, true))
     }
     var minAttendance by remember {
-        mutableIntStateOf(sharedPref.getInt(AppConstants.KEY_MIN_ATTENDANCE_SETTING, 75))
+        mutableStateOf(sharedPref.getInt(AppConstants.KEY_MIN_ATTENDANCE_SETTING, 75))
     }
     var selectedSubject by remember { mutableStateOf<Subject?>(null) }
 
@@ -57,10 +57,10 @@ fun AttendanceScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Attendance") },
+                title = { Text("Посещаемость") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Назад")
                     }
                 }
             )
@@ -73,7 +73,7 @@ fun AttendanceScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Enable Attendance Tracking", style = MaterialTheme.typography.bodyLarge)
+                    Text("Отслеживать посещаемость", style = MaterialTheme.typography.bodyLarge)
                     Switch(
                         checked = attendanceEnabled,
                         onCheckedChange = {
@@ -85,7 +85,7 @@ fun AttendanceScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text("Minimum Attendance Goal: $minAttendance%", style = MaterialTheme.typography.bodyMedium)
+                Text("Цель по посещаемости: $minAttendance%", style = MaterialTheme.typography.bodyMedium)
                 Slider(
                     value = minAttendance.toFloat(),
                     onValueChange = {
@@ -114,12 +114,12 @@ fun AttendanceScreen(
                         )
                         Spacer(Modifier.height(16.dp))
                         Text(
-                            "No subjects found.",
+                            "Предметы не найдены.",
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            "Add subjects in the Timetable or Notes.",
+                            "Добавьте предметы в Расписании или Заметках.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                         )
@@ -159,32 +159,32 @@ fun AttendanceSubjectItem(subject: Subject, goal: Int, onClick: (Subject) -> Uni
         val g = goal.toDouble()
 
         if (t == 0.0) {
-            "Attend your first class to see stats!"
+            "Посетите первое занятие, чтобы увидеть статистику!"
         } else {
             val currentPercent = (p / t) * 100.0
             if (currentPercent >= g) {
-                // How many can they skip?
-                // (Present) / (Total + X) >= Goal / 100
-                // 100 * Present / Goal >= Total + X
-                // X <= (100 * Present / Goal) - Total
                 val canSkip = kotlin.math.floor((100.0 * p / g) - t).toInt()
                 if (canSkip > 0) {
-                    "Safe! You can skip $canSkip more ${if (canSkip == 1) "class" else "classes"}."
+                    val skipWord = when {
+                        canSkip % 10 == 1 && canSkip % 100 != 11 -> "занятие"
+                        canSkip % 10 in 2..4 && canSkip % 100 !in 12..14 -> "занятия"
+                        else -> "занятий"
+                    }
+                    "Безопасно! Вы можете пропустить еще $canSkip $skipWord."
                 } else {
-                    "On the edge! Don't miss the next class."
+                    "На грани! Не пропускайте следующее занятие."
                 }
             } else {
-                // How many must they attend?
-                // (Present + Y) / (Total + Y) >= Goal / 100
-                // 100 * (Present + Y) >= Goal * (Total + Y)
-                // 100P + 100Y >= Goal*Total + Goal*Y
-                // Y * (100 - Goal) >= Goal*Total - 100P
-                // Y >= (Goal*Total - 100P) / (100 - Goal)
                 if (g < 100.0) {
                     val mustAttend = kotlin.math.ceil((g * t - 100.0 * p) / (100.0 - g)).toInt()
-                    "Attend $mustAttend more classes consecutively to reach $goal%."
+                    val attendWord = when {
+                        mustAttend % 10 == 1 && mustAttend % 100 != 11 -> "занятие"
+                        mustAttend % 10 in 2..4 && mustAttend % 100 !in 12..14 -> "занятия"
+                        else -> "занятий"
+                    }
+                    "Посетите еще $mustAttend $attendWord подряд, чтобы достичь $goal%."
                 } else {
-                    "Goal is 100%! Attend all remaining classes."
+                    "Цель — 100%! Посетите все оставшиеся занятия."
                 }
             }
         }
@@ -237,12 +237,12 @@ fun AttendanceSubjectItem(subject: Subject, goal: Int, onClick: (Subject) -> Uni
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Present: ${subject.attended}", style = MaterialTheme.typography.bodySmall)
-                Text("Absent: ${subject.missed}", style = MaterialTheme.typography.bodySmall)
-                Text("Cancelled: ${subject.skipped}", style = MaterialTheme.typography.bodySmall)
+                Text("Посещено: ${subject.attended}", style = MaterialTheme.typography.bodySmall)
+                Text("Пропущено: ${subject.missed}", style = MaterialTheme.typography.bodySmall)
+                Text("Отменено: ${subject.skipped}", style = MaterialTheme.typography.bodySmall)
             }
             Text(
-                text = "Total classes: ${total + subject.skipped}",
+                text = "Всего занятий: ${total + subject.skipped}",
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 4.dp)
             )
@@ -257,7 +257,7 @@ fun HistoricalAttendanceDialog(
     viewModel: MainViewModel,
     onDismiss: () -> Unit
 ) {
-    var refreshTrigger by remember { mutableIntStateOf(0) }
+    var refreshTrigger by remember { mutableStateOf(0) }
     val records = remember { mutableStateListOf<DbHelper.AttendanceRecord>() }
     
     LaunchedEffect(subject.name, refreshTrigger) {
@@ -271,7 +271,7 @@ fun HistoricalAttendanceDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Attendance History: ${subject.name}") },
+        title = { Text("История посещаемости: ${subject.name}") },
         text = {
             Column(
                 modifier = Modifier
@@ -282,11 +282,11 @@ fun HistoricalAttendanceDialog(
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                Text("Recent Activity", style = MaterialTheme.typography.titleSmall)
+                Text("Последняя активность", style = MaterialTheme.typography.titleSmall)
                 
                 if (records.isEmpty()) {
                     Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Text("No records found.", style = MaterialTheme.typography.bodyMedium)
+                        Text("Записей не найдено.", style = MaterialTheme.typography.bodyMedium)
                     }
                 } else {
                     LazyColumn(modifier = Modifier.weight(1f)) {
@@ -303,7 +303,7 @@ fun HistoricalAttendanceDialog(
                                         viewModel.deleteAttendanceRecord(record.weekId, subject.name ?: "", record.date)
                                         refreshTrigger++
                                     }, modifier = Modifier.size(24.dp)) {
-                                        Icon(Icons.Default.Delete, contentDescription = "Delete", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
+                                        Icon(Icons.Default.Delete, contentDescription = "Удалить", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
                                     }
                                 }
                             }
@@ -317,12 +317,12 @@ fun HistoricalAttendanceDialog(
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Add Older Record")
+                    Text("Добавить старую запись")
                 }
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Close") }
+            TextButton(onClick = onDismiss) { Text("Закрыть") }
         }
     )
 
@@ -339,10 +339,10 @@ fun HistoricalAttendanceDialog(
                         showTypePicker = true
                     }
                     showDatePicker = false
-                }) { Text("Next") }
+                }) { Text("Далее") }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showDatePicker = false }) { Text("Отмена") }
             }
         ) {
             DatePicker(state = datePickerState)
@@ -352,23 +352,23 @@ fun HistoricalAttendanceDialog(
     if (showTypePicker) {
         AlertDialog(
             onDismissRequest = { showTypePicker = false },
-            title = { Text("Status for $selectedDate") },
+            title = { Text("Статус на $selectedDate") },
             text = {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    HistoricalTypeButton("Present", Color(0xFF4CAF50)) {
+                    HistoricalTypeButton("Присутствовал", Color(0xFF4CAF50)) {
                         markAttendance(viewModel, subject, selectedDate, "attended")
                         refreshTrigger++
                         showTypePicker = false
                     }
-                    HistoricalTypeButton("Absent", Color(0xFFF44336)) {
+                    HistoricalTypeButton("Отсутствовал", Color(0xFFF44336)) {
                         markAttendance(viewModel, subject, selectedDate, "missed")
                         refreshTrigger++
                         showTypePicker = false
                     }
-                    HistoricalTypeButton("Cancelled", Color.Gray) {
+                    HistoricalTypeButton("Отменено", Color.Gray) {
                         markAttendance(viewModel, subject, selectedDate, "skipped")
                         refreshTrigger++
                         showTypePicker = false
@@ -404,7 +404,7 @@ fun AttendanceCalendar(records: List<DbHelper.AttendanceRecord>) {
                 newCal.add(Calendar.MONTH, -1)
                 calendar = newCal
             }) {
-                Icon(Icons.Default.ChevronLeft, contentDescription = "Previous Month")
+                Icon(Icons.Default.ChevronLeft, contentDescription = "Предыдущий месяц")
             }
             
             Text(
@@ -418,13 +418,13 @@ fun AttendanceCalendar(records: List<DbHelper.AttendanceRecord>) {
                 newCal.add(Calendar.MONTH, 1)
                 calendar = newCal
             }) {
-                Icon(Icons.Default.ChevronRight, contentDescription = "Next Month")
+                Icon(Icons.Default.ChevronRight, contentDescription = "Следующий месяц")
             }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
         
-        val daysOfWeek = listOf("S", "M", "T", "W", "T", "F", "S")
+        val daysOfWeek = listOf("Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб")
         Row(modifier = Modifier.fillMaxWidth()) {
             daysOfWeek.forEach { day ->
                 Text(
@@ -467,9 +467,9 @@ fun AttendanceCalendar(records: List<DbHelper.AttendanceRecord>) {
 @Composable
 fun StatusIcon(status: String) {
     val (icon, color, label) = when (status) {
-        "attended" -> Triple(Icons.Default.Check, Color(0xFF4CAF50), "Present")
-        "missed" -> Triple(Icons.Default.Close, Color(0xFFF44336), "Absent")
-        else -> Triple(Icons.Default.Block, Color.Gray, "Cancelled")
+        "attended" -> Triple(Icons.Default.Check, Color(0xFF4CAF50), "Присутствовал")
+        "missed" -> Triple(Icons.Default.Close, Color(0xFFF44336), "Отсутствовал")
+        else -> Triple(Icons.Default.Block, Color.Gray, "Отменено")
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(icon, contentDescription = label, tint = color, modifier = Modifier.size(16.dp))
