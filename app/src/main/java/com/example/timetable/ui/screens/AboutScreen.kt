@@ -36,19 +36,19 @@ fun AboutScreen(onBack: () -> Unit) {
     val versionName = remember {
         try {
             val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            packageInfo.versionName ?: "Unknown"
+            packageInfo.versionName ?: "Неизвестна"
         } catch (e: Exception) {
-            "Unknown"
+            "Неизвестна"
         }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("About") },
+                title = { Text("О приложении") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                     }
                 }
             )
@@ -78,7 +78,7 @@ fun AboutScreen(onBack: () -> Unit) {
                 ) {
                     Image(
                         painter = rememberAsyncImagePainter(model = R.mipmap.ic_launcher),
-                        contentDescription = "App Logo",
+                        contentDescription = "Логотип приложения",
                         modifier = Modifier
                             .size(80.dp)
                             .clip(RoundedCornerShape(16.dp))
@@ -90,13 +90,13 @@ fun AboutScreen(onBack: () -> Unit) {
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Version $versionName",
+                        text = "Версия $versionName",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "A smart and efficient student schedule management app.",
+                        text = "Умное и удобное приложение для управления расписанием студентов.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -104,11 +104,11 @@ fun AboutScreen(onBack: () -> Unit) {
             }
 
             // Developer Section
-            AboutSection(title = "Developer & Community") {
+            AboutSection(title = "Разработчик и сообщество") {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     AboutItem(
                         icon = Icons.Default.Person,
-                        title = "Developer: Pankaj Meharchandani",
+                        title = "Разработчик: Pankaj Meharchandani",
                         subtitle = "github.com/Pankaj-Meharchandani",
                         onClick = {
                             val intent = Intent(Intent.ACTION_VIEW, "https://github.com/Pankaj-Meharchandani".toUri())
@@ -117,7 +117,7 @@ fun AboutScreen(onBack: () -> Unit) {
                     )
                     AboutItem(
                         icon = Icons.Default.Code,
-                        title = "App source code",
+                        title = "Исходный код приложения",
                         subtitle = "github.com/Pankaj-Meharchandani/Lectro",
                         onClick = {
                             val intent = Intent(Intent.ACTION_VIEW, "https://github.com/Pankaj-Meharchandani/Lectro".toUri())
@@ -128,7 +128,7 @@ fun AboutScreen(onBack: () -> Unit) {
             }
 
             // Legal Section
-            AboutSection(title = "Legal") {
+            AboutSection(title = "Правовая информация") {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Button(
                         onClick = {
@@ -140,7 +140,7 @@ fun AboutScreen(onBack: () -> Unit) {
                     ) {
                         Icon(Icons.Default.Star, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Star on Github")
+                        Text("Поставить звезду на GitHub")
                     }
 
                     Row(
@@ -148,10 +148,10 @@ fun AboutScreen(onBack: () -> Unit) {
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         TextButton(onClick = { /* Privacy Policy */ }) {
-                            Text("Privacy policy")
+                            Text("Политика конфиденциальности")
                         }
                         TextButton(onClick = { /* Terms */ }) {
-                            Text("Terms & conditions")
+                            Text("Условия использования")
                         }
                     }
                 }
