@@ -34,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -173,7 +172,7 @@ fun MainScreen(
         derivedStateOf { viewModel.getOngoingClass() } 
     }
 
-    val configuration = LocalConfiguration.current
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val isSmallScreen = configuration.screenHeightDp < 650
 
     BackHandler(enabled = isSearchActive) {
@@ -229,7 +228,7 @@ fun MainScreen(
                         ) {
                             AsyncImage(
                                 model = user.photoPath ?: R.drawable.ic_launcher_foreground,
-                                contentDescription = "Profile Picture",
+                                contentDescription = "Аватар профиля",
                                 modifier = Modifier
                                     .size(iconSize)
                                     .clip(CircleShape),
@@ -238,7 +237,7 @@ fun MainScreen(
                             Spacer(modifier = Modifier.width(16.dp))
                             Column {
                                 Text(
-                                    text = if (user.name.isNullOrBlank()) "Student Name" else user.name!!,
+                                    text = if (user.name.isNullOrBlank()) "Имя студента" else user.name!!,
                                     style = if (isSmallScreen) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
                                     maxLines = 2,
@@ -246,7 +245,7 @@ fun MainScreen(
                                 )
                                 if (!user.rollNumber.isNullOrBlank()) {
                                     Text(
-                                        text = "Roll: ${user.rollNumber}",
+                                        text = "Студенческий: ${user.rollNumber}",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         maxLines = 2,
@@ -274,7 +273,7 @@ fun MainScreen(
                     ) {
                         AsyncImage(
                             model = R.mipmap.ic_launcher,
-                            contentDescription = "App Icon",
+                            contentDescription = "Иконка приложения",
                             modifier = Modifier
                                 .size(iconSize)
                                 .clip(CircleShape),
@@ -332,7 +331,7 @@ fun MainScreen(
                                 TextField(
                                     value = searchQuery,
                                     onValueChange = { searchQuery = it },
-                                    placeholder = { Text("Search...") },
+                                    placeholder = { Text("Поиск...") },
                                     modifier = Modifier.fillMaxWidth(),
                                     singleLine = true,
                                     colors = TextFieldDefaults.colors(
@@ -350,13 +349,13 @@ fun MainScreen(
                                     isSearchActive = false
                                     searchQuery = ""
                                 }) {
-                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                                 }
                             } else {
                                 IconButton(onClick = {
                                     scope.launch { drawerState.open() }
                                 }) {
-                                    Icon(Icons.Default.Menu, contentDescription = "Menu")
+                                    Icon(Icons.Default.Menu, contentDescription = "Меню")
                                 }
                             }
                         },
@@ -364,17 +363,17 @@ fun MainScreen(
                             if (isSearchActive) {
                                 if (searchQuery.isNotEmpty()) {
                                     IconButton(onClick = { searchQuery = "" }) {
-                                        Icon(Icons.Default.Clear, contentDescription = "Clear")
+                                        Icon(Icons.Default.Clear, contentDescription = "Очистить")
                                     }
                                 }
                             } else {
                                 IconButton(onClick = { isSearchActive = true }) {
-                                    Icon(Icons.Default.Search, contentDescription = "Search")
+                                    Icon(Icons.Default.Search, contentDescription = "Поиск")
                                 }
                                 IconButton(onClick = {
                                     PdfExportUtil.exportScheduleToPdf(context, days, viewModel.weekData)
                                 }) {
-                                    Icon(Icons.Default.PictureAsPdf, contentDescription = "Export PDF")
+                                    Icon(Icons.Default.PictureAsPdf, contentDescription = "Экспорт в PDF")
                                 }
                             }
                         }
@@ -396,12 +395,21 @@ fun MainScreen(
                             }
                         ) {
                             days.forEachIndexed { index, title ->
+                                val dayTranslation = mapOf(
+                                    "Monday" to "Пн",
+                                    "Tuesday" to "Вт",
+                                    "Wednesday" to "Ср",
+                                    "Thursday" to "Чт",
+                                    "Friday" to "Пт",
+                                    "Saturday" to "Сб",
+                                    "Sunday" to "Вс"
+                                )
                                 Tab(
                                     selected = pagerState.currentPage == index,
                                     onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
                                     text = { 
                                         Text(
-                                            text = title,
+                                            text = dayTranslation[title] ?: title,
                                             fontWeight = if (pagerState.currentPage == index) FontWeight.Bold else FontWeight.Normal
                                         ) 
                                     },
@@ -423,13 +431,13 @@ fun MainScreen(
                                     onNavigateToNoteInfo(noteId)
                                 },
                                 icon = { Icon(Icons.AutoMirrored.Filled.NoteAdd, contentDescription = null) },
-                                text = { Text("Note: ${ongoing.subject}") },
+                                text = { Text("Заметка: ${ongoing.subject}") },
                                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                                 modifier = Modifier.padding(bottom = 12.dp)
                             )
                         }
                         FloatingActionButton(onClick = { showAddDialog = true }) {
-                            Icon(Icons.Default.Add, contentDescription = "Add")
+                            Icon(Icons.Default.Add, contentDescription = "Добавить")
                         }
                     }
                 }
@@ -441,12 +449,12 @@ fun MainScreen(
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(Icons.Default.Search, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
-                                Text("Search Subjects, Notes, Assignments", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("Поиск по предметам, заметкам, заданиям", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                         }
                     } else if (searchResults.isEmpty()) {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("No results found for \"$searchQuery\"", style = MaterialTheme.typography.bodyMedium)
+                            Text("Ничего не найдено по запросу \"$searchQuery\"", style = MaterialTheme.typography.bodyMedium)
                         }
                     } else {
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -456,10 +464,10 @@ fun MainScreen(
                                     overlineContent = { 
                                         Text(
                                             when (result.type) {
-                                                MainViewModel.SearchResultType.SUBJECT -> "TIMETABLE"
-                                                MainViewModel.SearchResultType.NOTE -> "NOTE"
-                                                MainViewModel.SearchResultType.ASSIGNMENT -> "ASSIGNMENT"
-                                                MainViewModel.SearchResultType.TEACHER -> "TEACHER"
+                                                MainViewModel.SearchResultType.SUBJECT -> "РАСПИСАНИЕ"
+                                                MainViewModel.SearchResultType.NOTE -> "ЗАМЕТКА"
+                                                MainViewModel.SearchResultType.ASSIGNMENT -> "ЗАДАНИЕ"
+                                                MainViewModel.SearchResultType.TEACHER -> "ПРЕПОДАВАТЕЛЬ"
                                             }
                                         )
                                     },
@@ -560,18 +568,18 @@ fun MainScreen(
     weekToDelete?.let { week ->
         AlertDialog(
             onDismissRequest = { weekToDelete = null },
-            title = { Text("Delete Slot") },
-            text = { Text("Are you sure you want to delete this ${week.subject} slot?") },
+            title = { Text("Удалить занятие") },
+            text = { Text("Вы уверены, что хотите удалить занятие по предмету ${week.subject}?") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteWeek(week)
                     weekToDelete = null
                 }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
-                    Text("Delete")
+                    Text("Удалить")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { weekToDelete = null }) { Text("Cancel") }
+                TextButton(onClick = { weekToDelete = null }) { Text("Отмена") }
             }
         )
     }
@@ -591,14 +599,14 @@ fun MainScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "New update available",
+                        text = "Доступно новое обновление",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "Update the app to version v${info.latestVersion}",
+                        text = "Обновите приложение до версии v${info.latestVersion}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
@@ -607,7 +615,7 @@ fun MainScreen(
                     Spacer(Modifier.height(24.dp))
 
                     Text(
-                        text = "What's new",
+                        text = "Что нового",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.SemiBold
@@ -642,7 +650,7 @@ fun MainScreen(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            Text("Later")
+                            Text("Позже")
                         }
                         Button(
                             onClick = {
@@ -652,7 +660,7 @@ fun MainScreen(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            Text("Update")
+                            Text("Обновить")
                         }
                     }
 
@@ -664,7 +672,7 @@ fun MainScreen(
                             updateInfo = null
                         }
                     ) {
-                        Text("Ignore this version", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Игнорировать эту версию", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -674,14 +682,14 @@ fun MainScreen(
     if (showReportIssueDialog) {
         AlertDialog(
             onDismissRequest = { showReportIssueDialog = false },
-            title = { Text("Report Issue") },
-            text = { Text("To help us fix the problem faster, you can include app logs from the past few minutes. Device information will also be included.") },
+            title = { Text("Сообщить об ошибке") },
+            text = { Text("Чтобы помочь нам быстрее исправить проблему, вы можете прикрепить логи приложения за последние несколько минут. Информация об устройстве также будет добавлена.") },
             confirmButton = {
                 Button(onClick = {
                     showReportIssueDialog = false
                     showLogDurationDialog = true
                 }) {
-                    Text("Attach Logs")
+                    Text("Прикрепить логи")
                 }
             },
             dismissButton = {
@@ -690,7 +698,7 @@ fun MainScreen(
                     val intent = Intent(Intent.ACTION_VIEW, "https://github.com/Pankaj-Meharchandani/Lectro/issues/new".toUri())
                     context.startActivity(intent)
                 }) {
-                    Text("Just Report Issue")
+                    Text("Просто сообщить")
                 }
             }
         )
@@ -699,13 +707,20 @@ fun MainScreen(
     if (showLogDurationDialog) {
         AlertDialog(
             onDismissRequest = { showLogDurationDialog = false },
-            title = { Text("Log Duration") },
+            title = { Text("Длительность логов") },
             text = {
                 Column {
-                    Text("Select how far back to collect logs:", style = MaterialTheme.typography.bodyMedium)
+                    Text("Выберите, за какой период собрать логи:", style = MaterialTheme.typography.bodyMedium)
                     Spacer(Modifier.height(16.dp))
                     listOf(1, 5, 10, 15).forEach { mins ->
-                        val durationText = if (mins == 1) "1 Minute" else "$mins Minutes"
+                        val durationText = if (mins == 1) "1 минуту" else {
+                            val minsWord = when {
+                                mins % 10 == 1 && mins % 100 != 11 -> "минуту"
+                                mins % 10 in 2..4 && mins % 100 !in 12..14 -> "минуты"
+                                else -> "минут"
+                            }
+                            "$mins $minsWord"
+                        }
                         TextButton(
                             onClick = {
                                 showLogDurationDialog = false
@@ -718,7 +733,7 @@ fun MainScreen(
                                         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                         val clip = android.content.ClipData.newPlainText("App Logs", fullBody)
                                         clipboard.setPrimaryClip(clip)
-                                        Toast.makeText(context, "Issue details copied to clipboard", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, "Информация об ошибке скопирована в буфер обмена", Toast.LENGTH_SHORT).show()
 
                                         val intent = Intent(Intent.ACTION_VIEW, 
                                             "https://github.com/Pankaj-Meharchandani/Lectro/issues/new?body=${Uri.encode(fullBody)}".toUri()
@@ -729,7 +744,7 @@ fun MainScreen(
                                             // Fallback if the body is too long for the URL
                                             val shortIntent = Intent(Intent.ACTION_VIEW, "https://github.com/Pankaj-Meharchandani/Lectro/issues/new".toUri())
                                             context.startActivity(shortIntent)
-                                            Toast.makeText(context, "Body too large, please paste from clipboard", Toast.LENGTH_LONG).show()
+                                            Toast.makeText(context, "Текст слишком длинный, пожалуйста, вставьте его из буфера обмена", Toast.LENGTH_LONG).show()
                                         }
                                     }
                                 }
@@ -743,7 +758,7 @@ fun MainScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showLogDurationDialog = false }) {
-                    Text("Cancel")
+                    Text("Отмена")
                 }
             }
         )
@@ -856,12 +871,12 @@ fun DayList(
                 )
                 Spacer(Modifier.height(16.dp))
                 Text(
-                    "No classes for this day!",
+                    "На этот день занятий нет!",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    "Relax or add some slots.",
+                    "Отдохните или добавьте пары.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
@@ -918,7 +933,7 @@ fun NavigationDrawerContent(
                 )
             }
             NavigationDrawerItem(
-                label = { Text("Attendance") },
+                label = { Text("Посещаемость") },
                 selected = false,
                 onClick = { onAttendanceClick(); onItemClick() },
                 icon = { Icon(Icons.Default.DoneAll, contentDescription = null) },
@@ -973,7 +988,7 @@ fun NavigationDrawerContent(
         Column(modifier = Modifier.padding(bottom = if (isSmallScreen) 8.dp else 16.dp)) {
             HorizontalDivider(modifier = Modifier.padding(vertical = if (isSmallScreen) 4.dp else 8.dp))
             NavigationDrawerItem(
-                label = { Text("Report Issue") },
+                label = { Text("Сообщить об ошибке") },
                 selected = false,
                 onClick = { 
                     onReportIssueClick()
@@ -983,7 +998,7 @@ fun NavigationDrawerContent(
                 modifier = itemModifier
             )
             NavigationDrawerItem(
-                label = { Text("About") },
+                label = { Text("О приложении") },
                 selected = false,
                 onClick = { onAboutClick(); onItemClick() },
                 icon = { Icon(Icons.Default.Info, contentDescription = null) },
