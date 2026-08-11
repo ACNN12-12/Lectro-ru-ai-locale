@@ -146,14 +146,14 @@ fun NotesScreen(
                 title = { Text(stringResource(id = R.string.notes)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                     }
                 }
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
+                Icon(Icons.Default.Add, contentDescription = "Добавить")
             }
         }
     ) { padding ->
@@ -173,12 +173,12 @@ fun NotesScreen(
                     )
                     Spacer(Modifier.height(16.dp))
                     Text(
-                        "No subjects added yet.",
+                        "Предметы еще не добавлены.",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        "Tap + to add your first subject.",
+                        "Нажмите +, чтобы добавить первый предмет.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
@@ -214,16 +214,16 @@ fun NotesScreen(
                             onClick = { showReorderMenu = true },
                             modifier = Modifier.align(Alignment.CenterEnd).padding(end = 60.dp)
                         ) {
-                            Icon(Icons.Default.SwapVert, contentDescription = "Reorder")
+                            Icon(Icons.Default.SwapVert, contentDescription = "Переместить")
                         }
                         DropdownMenu(expanded = showReorderMenu, onDismissRequest = { showReorderMenu = false }) {
                             DropdownMenuItem(
-                                text = { Text("Move Up") },
+                                text = { Text("Переместить вверх") },
                                 onClick = { viewModel.moveSubject(index, true); showReorderMenu = false },
                                 enabled = index > 0
                             )
                             DropdownMenuItem(
-                                text = { Text("Move Down") },
+                                text = { Text("Переместить вниз") },
                                 onClick = { viewModel.moveSubject(index, false); showReorderMenu = false },
                                 enabled = index < viewModel.allSubjects.size - 1
                             )
@@ -258,8 +258,8 @@ fun NotesScreen(
     subjectToDelete?.let { subject ->
         AlertDialog(
             onDismissRequest = { subjectToDelete = null },
-            title = { Text("Delete Subject") },
-            text = { Text("Are you sure you want to delete '${subject.name}'? This will also remove all its schedule slots, notes and materials.") },
+            title = { Text("Удалить предмет") },
+            text = { Text("Вы уверены, что хотите удалить предмет '${subject.name}'? Это также приведет к удалению всех связанных занятий, заметок и материалов.") },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -268,11 +268,11 @@ fun NotesScreen(
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Delete")
+                    Text("Удалить")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { subjectToDelete = null }) { Text("Cancel") }
+                TextButton(onClick = { subjectToDelete = null }) { Text("Отмена") }
             }
         )
     }
@@ -283,7 +283,7 @@ fun NotesScreen(
 fun AddNoteDialog(onDismiss: () -> Unit, onSave: (Note, String) -> Unit, subjectSuggestions: List<String>) {
     var title by remember { mutableStateOf("") }
     var subjectName by remember { mutableStateOf("") }
-    var color by remember { mutableIntStateOf(0) }
+    var color by remember { mutableStateOf(0) }
     var subjectExpanded by remember { mutableStateOf(false) }
 
     AlertDialog(
@@ -306,7 +306,7 @@ fun AddNoteDialog(onDismiss: () -> Unit, onSave: (Note, String) -> Unit, subject
                             subjectName = it
                             subjectExpanded = it.isNotEmpty()
                         },
-                        label = { Text("Subject (creates if new)") },
+                        label = { Text("Предмет (создастся, если новый)") },
                         modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable, true).fillMaxWidth(),
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = subjectExpanded) }
                     )
@@ -323,7 +323,7 @@ fun AddNoteDialog(onDismiss: () -> Unit, onSave: (Note, String) -> Unit, subject
                     }
                 }
 
-                Text("Note Color")
+                Text("Цвет заметки")
                 ColorPickerRow(selectedColor = color, onColorSelected = { color = it })
             }
         },
