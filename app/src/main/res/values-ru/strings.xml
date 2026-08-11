@@ -1,0 +1,137 @@
+<resources>
+    <string name="app_name">Lectro</string>
+    <string name="navigation_drawer_open">Открыть меню навигации</string>
+    <string name="navigation_drawer_close">Закрыть меню навигации</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_desc">Заголовок навигации</string>
+    <string name="action_settings">Настройки</string>
+
+    <!-- Fragments strings -->
+    <string name="monday">Понедельник</string>
+    <string name="tuesday">Вторник</string>
+    <string name="wednesday">Среда</string>
+    <string name="thursday">Четверг</string>
+    <string name="friday">Пятница</string>
+    <string name="saturday">Суббота</string>
+    <string name="sunday">Воскресенье</string>
+    <string name="select_snackbar">Пожалуйста, выберите один элемент.</string>
+    <string name="selected">Выбрано</string>
+
+    <!-- Main Activity strings -->
+    <string name="timetable">Расписание</string>
+    <string name="seven_days_of_the_week">7 дней в неделю</string>
+    <string name="subject">Предмет</string>
+    <string name="field_error">Поле не может быть пустым!</string>
+    <string name="time_error">Поле времени не может быть пустым!</string>
+    <string name="week">Неделя</string>
+    <string name="delete">Удалить</string>
+    <string name="edit">Изменить</string>
+    <string name="school_website">Сайт университета</string>
+    <string name="school_website_snackbar">Пожалуйста, укажите ссылку на сайт вашего университета в настройках.</string>
+
+    <string name="add_subject">Добавить предмет</string>
+    <string name="edit_subject">Изменить предмет</string>
+    <string name="teacher">Преподаватель</string>
+    <string name="room">Аудитория</string>
+    <string name="time">Время</string>
+    <string name="save">Сохранить</string>
+    <string name="cancel">Отмена</string>
+    <string name="time_to_dialog">До:</string>
+    <string name="time_from_dialog">С:</string>
+    <string name="subject_dialog">Предмет:</string>
+    <string name="teacher_dialog">Преподаватель:</string>
+    <string name="room_dialog">Аудитория:</string>
+    <string name="select_time">Выбрать время</string>
+    <string name="select_color">Выбрать цвет</string>
+    <string name="choose_time">Указать время</string>
+    <string name="choose_date">Выбрать дату</string>
+    <string name="choose_color">Указать цвет</string>
+
+    <!-- Assignments Activity strings -->
+    <string name="title_activity_homeworks">Задания</string>
+    <string name="homeworks">Задания</string>
+    <string name="select_date">Выберите срок сдачи</string>
+    <string name="select_exam_date">Выберите дату</string>
+    <string name="deadline_dialog">Срок сдачи:</string>
+    <string name="deadline">Срок сдачи</string>
+    <string name="description_dialog">Описание:</string>
+    <string name="desctiption">Описание</string>
+    <string name="date_error">Поле даты не может быть пустым!</string>
+    <string name="edit_homework">Изменить задание</string>
+    <string name="add_homework">Добавить задание</string>
+    <string name="deadline_snackbar">Поле срока сдачи не может быть пустым!</string>
+    <string name="date">Срок сдачи</string>
+
+    <!-- Notes Activity strings -->
+    <string name="notes">Заметки</string>
+    <string name="title_dialog">Заголовок:</string>
+    <string name="add_note">Добавить заметку</string>
+    <string name="edit_note">Изменить заметку</string>
+    <string name="title_error">Поле заголовка не может быть пустым!</string>
+    <string name="title">Заголовок</string>
+    <string name="saved">Сохранено</string>
+
+    <!-- Teachers Activity strings -->
+    <string name="teachers">Преподаватели</string>
+    <string name="add_teacher">Добавить преподавателя</string>
+    <string name="edit_teacher">Изменить данные</string>
+    <string name="name_dialog">ФИО:</string>
+    <string name="post_dialog">Должность:</string>
+    <string name="phonenumber_dialog">Телефон:</string>
+    <string name="email_dialog">Email:</string>
+    <string name="cabinnumber_dialog">Кабинет/Кафедра:</string>
+    <string name="name">ФИО</string>
+    <string name="phone_number">Номер телефона</string>
+    <string name="post">Должность</string>
+    <string name="email">Email</string>
+    <string name="cabin_number">Кабинет</string>
+
+    <!-- Exams Activity strings -->
+    <string name="exams">Экзамены</string>
+    <string name="add_exam">Добавить экзамен</string>
+    <string name="date_dialog">Дата:</string>
+    <string name="time_dialog">Время:</string>
+
+    <!-- Settings Activity strings -->
+    <string name="sevendays_setting">Включить 7-дневную неделю</string>
+    <string name="school_website_setting">Изменить сайт университета</string>
+    <string name="school_website_setting_summary">Укажите ссылку на сайт вашего ВУЗа</string>
+
+    <string name="reset_data">Сбросить данные приложения</string>
+    <string name="reset_data_summary">Удалить всё расписание, задания, заметки и т.д.</string>
+    <string name="reset_warning">Вы уверены, что хотите удалить все данные? Это действие нельзя отменить.</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="subjects">Предметы</string>
+    <string name="materials">Материалы</string>
+    <string name="add_material">Добавить материал</string>
+    <string name="pick_file">Выбрать файл</string>
+    <string name="bullet_points">Маркированный список</string>
+    <string name="heading">Заголовок</string>
+    <string name="subheading">Подзаголовок</string>
+    <string name="divider">Разделитель</string>
+    <string name="image">Изображение</string>
+    <string name="color_picker_default_title">Выберите цвет</string>
+
+    <!-- Notification -->
+    <string name="notification_title">Занятия на сегодня</string>
+    <string name="do_not_have_lessons">У вас сегодня нет занятий!</string>
+    <string name="app_subtitle">Менеджер расписания студента</string>
+    <string name="pick_note_color">Выберите цвет заметки</string>
+    <string name="share">Поделиться</string>
+    <string name="delete_note_confirm">Вы уверены, что хотите удалить эту заметку?</string>
+    <string name="delete_note_title">Удалить заметку</string>
+
+    <string name="personal_details_files">Личные данные и файлы</string>
+    <string name="enable_personal_details">Включить личные данные и файлы</string>
+    <string name="name_label">Имя</string>
+    <string name="email_label">Email</string>
+    <string name="roll_number_label">Номер студенческого/зачетки</string>
+    <string name="other_label">Другое (например, курс, группа)</string>
+    <string name="my_files">Мои файлы</string>
+    <string name="upload_file">Загрузить файл</string>
+
+    <string name="widget_schedule_description">Просматривайте расписание занятий на день.</string>
+    <string name="widget_deadlines_description">Следите за предстоящими заданиями и экзаменами.</string>
+    <string name="widget_attendance_description">Быстро отмечайте посещаемость текущего занятия.</string>
+</resources>
